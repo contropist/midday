@@ -1,19 +1,39 @@
-"use client";
-
+import type { UpdateTransactionValues } from "@/actions/schema";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Drawer, DrawerContent } from "@midday/ui/drawer";
 import { Sheet, SheetContent } from "@midday/ui/sheet";
 import React from "react";
 import { TransactionDetails } from "../transaction-details";
 
-export function TransactionSheet({ setOpen, isOpen, data, transactionId }) {
+type Props = {
+  setOpen: (open: boolean) => void;
+  isOpen: boolean;
+  data: any;
+  ids?: string[];
+  updateTransaction: (
+    values: UpdateTransactionValues,
+    optimisticData: any
+  ) => void;
+};
+
+export function TransactionSheet({
+  setOpen,
+  isOpen,
+  data,
+  ids,
+  updateTransaction,
+}: Props) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   if (isDesktop) {
     return (
       <Sheet open={isOpen} onOpenChange={setOpen}>
         <SheetContent>
-          <TransactionDetails transactionId={transactionId} data={data} />
+          <TransactionDetails
+            data={data}
+            ids={ids}
+            updateTransaction={updateTransaction}
+          />
         </SheetContent>
       </Sheet>
     );
@@ -29,7 +49,11 @@ export function TransactionSheet({ setOpen, isOpen, data, transactionId }) {
       }}
     >
       <DrawerContent className="p-6">
-        <TransactionDetails transactionId={transactionId} data={data} />
+        <TransactionDetails
+          data={data}
+          ids={ids}
+          updateTransaction={updateTransaction}
+        />
       </DrawerContent>
     </Drawer>
   );

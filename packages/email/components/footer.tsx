@@ -7,16 +7,13 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-
-import React from "react";
 import { TripleColumn } from "responsive-react-email";
 
 type Props = {
   baseUrl?: string;
-  unsubscribeLink?: string;
 };
 
-export function Footer({ baseUrl, unsubscribeLink }: Props) {
+export function Footer({ baseUrl }: Props) {
   return (
     <Section className="w-full">
       <Hr />
@@ -24,7 +21,7 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
       <br />
 
       <Text className="text-[21px] font-regular">
-        Run your bussiness smarter.
+        Run your business smarter.
       </Text>
 
       <br />
@@ -36,44 +33,73 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
         columnOneContent={
           <Section className="text-left p-0 m-0">
             <Row>
-              <Text className="font-medium">Product</Text>
+              <Text className="font-medium">Features</Text>
             </Row>
+
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/fhEy5CL"
+                href="https://go.midday.ai/bOp4NOx"
               >
-                Homepage
+                Overview
               </Link>
             </Row>
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/KKEB90F"
+                href="https://go.midday.ai/VFcNsmQ"
+              >
+                Inbox
+              </Link>
+            </Row>
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/uA06kWO"
+              >
+                Vault
+              </Link>
+            </Row>
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/x7Fow9L"
+              >
+                Tracker
+              </Link>
+            </Row>
+
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/fkYXc95"
+              >
+                Invoice
+              </Link>
+            </Row>
+
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/dEnP9h5"
               >
                 Pricing
               </Link>
             </Row>
+
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/Wa3TxOy"
+                href="https://go.midday.ai/E24P3oY"
               >
-                Story
+                Engine
               </Link>
             </Row>
+
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/jr5dX4W"
-              >
-                Updates
-              </Link>
-            </Row>
-            <Row className="mb-1.5">
-              <Link
-                className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/sXJM9Qv"
+                href="https://midday.ai/download"
               >
                 Download
               </Link>
@@ -89,9 +115,9 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/aTNyqQH"
+                href="https://go.midday.ai/fhEy5CL"
               >
-                Roadmap
+                Homepage
               </Link>
             </Row>
             <Row className="mb-1.5">
@@ -105,7 +131,7 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/J2j4CM2"
+                href="https://go.midday.ai/ZrhEMbR"
               >
                 Support
               </Link>
@@ -126,28 +152,46 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
                 Privacy policy
               </Link>
             </Row>
+
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/IQ1kcN0"
+              >
+                Branding
+              </Link>
+            </Row>
+
+            <Row className="mb-1.5">
+              <Link
+                className="text-[#707070] text-[14px]"
+                href="https://go.midday.ai/x5ohOs7"
+              >
+                Feature Request
+              </Link>
+            </Row>
           </Section>
         }
         columnTwoStyles={{ paddingRight: 0, paddingLeft: 0, width: 185 }}
         columnThreeContent={
           <Section className="text-left p-0 m-0">
             <Row>
-              <Text className="font-medium">Solutions</Text>
+              <Text className="font-medium">Company</Text>
             </Row>
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/cduCp4l"
+                href="https://go.midday.ai/186swoH"
               >
-                SaaS hosting
+                Story
               </Link>
             </Row>
             <Row className="mb-1.5">
               <Link
                 className="text-[#707070] text-[14px]"
-                href="https://go.midday.ai/yrQlSIz"
+                href="https://go.midday.ai/QWyX8Um"
               >
-                Self hosted
+                Updates
               </Link>
             </Row>
             <Row className="mb-1.5">
@@ -228,17 +272,15 @@ export function Footer({ baseUrl, unsubscribeLink }: Props) {
         </Text>
       </Row>
 
-      {unsubscribeLink && (
-        <Row>
-          <Link
-            className="text-[#707070] text-[14px]"
-            href={unsubscribeLink}
-            title="Unsubscribe"
-          >
-            Unsubscribe
-          </Link>
-        </Row>
-      )}
+      <Row>
+        <Link
+          className="text-[#707070] text-[14px]"
+          href="https://app.midday.ai/settings/notifications"
+          title="Unsubscribe"
+        >
+          Notification preferences
+        </Link>
+      </Row>
 
       <br />
       <br />

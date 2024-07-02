@@ -1,8 +1,7 @@
 "use client";
 
-import { cn } from "@midday/ui/utils";
+import { cn } from "@midday/ui/cn";
 import { motion, stagger, useAnimate } from "framer-motion";
-import { useEffect } from "react";
 
 export const TextGenerateEffect = ({
   words,
@@ -21,7 +20,7 @@ export const TextGenerateEffect = ({
           return (
             <motion.span
               key={word + idx.toString()}
-              className="dark:text-white text-black opacity-0"
+              className="text-white opacity-0"
             >
               {word}{" "}
             </motion.span>
@@ -40,7 +39,7 @@ export const TextGenerateEffect = ({
             opacity: 1,
           },
           {
-            duration: 2,
+            duration: 1,
             delay: stagger(0.13),
           }
         );

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@midday/ui/button";
+import { cn } from "@midday/ui/cn";
 import {
   Dialog,
   DialogContentFrameless,
@@ -8,7 +9,6 @@ import {
 } from "@midday/ui/dialog";
 import { Icons } from "@midday/ui/icons";
 import { Skeleton } from "@midday/ui/skeleton";
-import { cn } from "@midday/ui/utils";
 import { FileType } from "@midday/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -29,6 +29,7 @@ type Props = {
   height: number;
   disableFullscreen?: boolean;
   onLoaded?: () => void;
+  download?: boolean;
 };
 
 const RenderComponent = ({
@@ -56,6 +57,9 @@ const RenderComponent = ({
   };
 
   if (type?.startsWith("image")) {
+    // NOTE: Can't get initial onLoad event to fire
+    onLoaded(true);
+
     return (
       <div className={cn("flex items-center justify-center", className)}>
         <img
@@ -72,19 +76,17 @@ const RenderComponent = ({
   switch (type) {
     case FileType.Pdf:
       return (
-        <div style={{ width, height }} className="pdf-viewer">
-          <Document file={src} onLoadSuccess={onDocumentLoadSuccess}>
-            <div className="overflow-auto" style={{ height }}>
-              {Array.from(new Array(numPages), (_, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  width={width}
-                />
-              ))}
-            </div>
-          </Document>
-        </div>
+        <Document file={src} onLoadSuccess={onDocumentLoadSuccess}>
+          <div className="overflow-y-auto overflow-x-hidden max-h-screen">
+            {Array.from(new Array(numPages), (_, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={width}
+              />
+            ))}
+          </div>
+        </Document>
       );
     default:
       return null;
@@ -101,6 +103,7 @@ export function FilePreview({
   width,
   height,
   disableFullscreen,
+  download = true,
   onLoaded,
 }: Props) {
   const [isLoaded, setLoaded] = useState(false);
@@ -113,8 +116,8 @@ export function FilePreview({
   return (
     <Dialog>
       <div className={cn(className, "relative h-full")}>
-        {!preview && isLoaded && (
-          <AnimatePresence>
+        <AnimatePresence>
+          {!preview && isLoaded && (
             <div className="absolute bottom-4 left-2 flex space-x-2 z-10">
               {!disableFullscreen && (
                 <motion.div
@@ -133,6 +136,7 @@ export function FilePreview({
                   </DialogTrigger>
                 </motion.div>
               )}
+
               {downloadUrl && (
                 <motion.div
                   initial={{ y: 50, opacity: 0 }}
@@ -152,8 +156,29 @@ export function FilePreview({
                 </motion.div>
               )}
             </div>
-          </AnimatePresence>
-        )}
+          )}
+
+          {disableFullscreen && download && downloadUrl && (
+            <div className="absolute bottom-4 left-2 z-10">
+              <motion.div
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -50, opacity: 0 }}
+                transition={{ delay: 0.04 }}
+              >
+                <a href={downloadUrl} download>
+                  <Button
+                    variant="secondary"
+                    className="w-[32px] h-[32px] bg-white/80 hover:bg-white dark:bg-black/80 dark:hover:bg-black border"
+                    size="icon"
+                  >
+                    <Icons.FileDownload />
+                  </Button>
+                </a>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         <Skeleton
           className={cn(

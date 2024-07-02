@@ -1,7 +1,15 @@
-import { Provider } from "../interface";
-import { GetAccountsRequest, GetTransactionsRequest } from "../types";
+import type { Provider } from "../interface";
+import type {
+  GetAccountBalanceRequest,
+  GetAccountsRequest,
+  GetTransactionsRequest,
+} from "../types";
 import { PlaidApi } from "./plaid-api";
-import { transformAccount, transformTransaction } from "./transform";
+import {
+  transformAccount,
+  transformAccountBalance,
+  transformTransaction,
+} from "./transform";
 
 export class PlaidProvider implements Provider {
   #api: PlaidApi;
@@ -16,6 +24,7 @@ export class PlaidProvider implements Provider {
     accountId,
     bankAccountId,
     latest,
+    accountType,
   }: GetTransactionsRequest) {
     if (!accessToken || !accountId) {
       throw Error("accessToken or accountId is missing");
@@ -32,6 +41,7 @@ export class PlaidProvider implements Provider {
         transaction,
         teamId,
         bankAccountId,
+        accountType,
       })
     );
   }
@@ -47,5 +57,23 @@ export class PlaidProvider implements Provider {
     });
 
     return response?.map(transformAccount);
+  }
+
+  async getAccountBalance({
+    accessToken,
+    accountId,
+  }: GetAccountBalanceRequest) {
+    if (!accessToken || !accountId) {
+      throw Error("Missing params");
+    }
+
+    const response = await this.#api.getAccountBalance({
+      accessToken,
+      accountId,
+    });
+
+    if (response) {
+      return transformAccountBalance(response);
+    }
   }
 }

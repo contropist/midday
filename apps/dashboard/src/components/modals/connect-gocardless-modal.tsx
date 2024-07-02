@@ -97,15 +97,15 @@ function Row({ id, name, logo, onSelect }) {
 }
 
 export function ConnectGoCardLessModal({ countryCode: initialCountryCode }) {
-  const [countryCode, setCountryCode] = useState(initialCountryCode);
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
 
   const createEndUserAgreement = useAction(createEndUserAgreementAction);
 
-  const [step, setStep] = useQueryState("step", {
-    shallow: true,
+  const [step, setStep] = useQueryState("step");
+  const [countryCode, setCountryCode] = useQueryState("contryCode", {
+    defaultValue: initialCountryCode,
   });
 
   const isOpen = step === "gocardless";
@@ -197,6 +197,7 @@ export function ConnectGoCardLessModal({ countryCode: initialCountryCode }) {
                           institutionId: bank.id,
                           isDesktop: isDesktopApp(),
                           transactionTotalDays: +bank.transaction_total_days,
+                          countryCode,
                         });
                       }}
                     />

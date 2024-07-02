@@ -11,7 +11,8 @@ export const updateInboxAction = action(updateInboxSchema, async (params) => {
   const user = await getUser();
   const teamId = user?.data?.team_id;
   const supabase = createClient();
-  const { data: inboxData } = await updateInboxById(supabase, {
+
+  await updateInboxById(supabase, {
     ...params,
     teamId,
   });
@@ -19,5 +20,5 @@ export const updateInboxAction = action(updateInboxSchema, async (params) => {
   revalidatePath("/inbox");
   revalidateTag(`transactions_${teamId}`);
 
-  return inboxData;
+  return null;
 });

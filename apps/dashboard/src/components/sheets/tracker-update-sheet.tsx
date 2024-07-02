@@ -31,7 +31,7 @@ import { useToast } from "@midday/ui/use-toast";
 import { useAction } from "next-safe-action/hooks";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 
 export function TrackerUpdateSheet({ currencyCode, data, isOpen, setParams }) {
   const { toast } = useToast();
@@ -125,7 +125,7 @@ export function TrackerUpdateSheet({ currencyCode, data, isOpen, setParams }) {
               </DropdownMenu>
             </SheetHeader>
 
-            <ScrollArea className="h-full p-0 pb-28">
+            <ScrollArea className="h-full p-0 pb-280" hideScrollbar>
               <TrackerProjectForm
                 form={form}
                 isSaving={updateAction.status === "executing"}

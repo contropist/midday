@@ -1,5 +1,6 @@
 import { DataTable } from "@/components/tables/transactions/data-table";
-import { getTransactions, getUser } from "@midday/supabase/cached-queries";
+import { Cookies } from "@/utils/constants";
+import { getTransactions } from "@midday/supabase/cached-queries";
 import { cookies } from "next/headers";
 import { columns } from "./columns";
 import { NoResults } from "./empty-states";
@@ -8,34 +9,33 @@ import { Loading } from "./loading";
 const pageSize = 50;
 const maxItems = 100000;
 
-export async function Table({
-  filter,
-  page,
-  sort,
-  noAccounts,
-  initialTransactionId,
-  query,
-}) {
+type Props = {
+  filter: any;
+  page: number;
+  sort: any;
+  noAccounts: boolean;
+  query?: string;
+};
+
+export async function Table({ filter, page, sort, noAccounts, query }: Props) {
   const hasFilters = Object.keys(filter).length > 0;
-  const { data: userData } = await getUser();
   const initialColumnVisibility = JSON.parse(
-    cookies().get("transactions-columns")?.value || "[]"
+    cookies().get(Cookies.TransactionsColumns)?.value || "[]"
   );
 
   // NOTE: When we have a filter we want to show all results so users can select
   // And handle all in once (export etc)
-  const { data, meta } = await getTransactions({
+  const transactions = await getTransactions({
     to: hasFilters ? maxItems : pageSize,
     from: 0,
     filter,
     sort,
-    search: {
-      query,
-      fuzzy: true,
-    },
+    searchQuery: query,
   });
 
-  async function loadMore({ from, to }) {
+  const { data, meta } = transactions ?? {};
+
+  async function loadMore({ from, to }: { from: number; to: number }) {
     "use server";
 
     return getTransactions({
@@ -43,10 +43,7 @@ export async function Table({
       from: from + 1,
       filter,
       sort,
-      search: {
-        query,
-        fuzzy: true,
-      },
+      searchQuery: query,
     });
   }
 
@@ -62,13 +59,13 @@ export async function Table({
     return <NoResults hasFilters={hasFilters} />;
   }
 
-  const hasNextPage = meta.count / (page + 1) > pageSize;
+  const hasNextPage = Boolean(
+    meta?.count && meta.count / (page + 1) > pageSize
+  );
 
   return (
     <DataTable
-      teamId={userData.team_id}
       initialColumnVisibility={initialColumnVisibility}
-      initialTransactionId={initialTransactionId}
       columns={columns}
       data={data}
       pageSize={pageSize}
@@ -77,6 +74,7 @@ export async function Table({
       meta={meta}
       hasFilters={hasFilters}
       page={page}
+      query={query}
     />
   );
 }

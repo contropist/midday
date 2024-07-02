@@ -1,51 +1,50 @@
 import { ArchiveIcon } from "@radix-ui/react-icons";
-import { Settings } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import { FiGithub } from "react-icons/fi";
 import {
   MdAdd,
-  MdApartment,
   MdArrowBack,
   MdArrowLeft,
   MdArrowRight,
+  MdArrowUpward,
   MdAutoAwesome,
   MdBarChart,
-  MdCelebration,
+  MdChangeHistory,
   MdChevronLeft,
   MdChevronRight,
   MdClose,
   MdCreateNewFolder,
   MdDescription,
-  MdDesk,
-  MdDevices,
   MdDriveFileMove,
-  MdDynamicForm,
   MdEditCalendar,
   MdErrorOutline,
+  MdExpandLess,
   MdExpandMore,
-  MdFastfood,
   MdFence,
   MdFileUpload,
-  MdFlightTakeoff,
   MdFolder,
   MdFolderSpecial,
   MdFolderZip,
-  MdHomeWork,
   MdInventory2,
   MdIosShare,
+  MdKeyboardArrowDown,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight,
+  MdKeyboardArrowUp,
+  MdMenu,
   MdMoreHoriz,
-  MdOutlineAccountBalanceWallet,
   MdOutlineArrowDownward,
   MdOutlineArrowForward,
+  MdOutlineAutoAwesome,
+  MdOutlineBackspace,
   MdOutlineBrokenImage,
   MdOutlineCancel,
   MdOutlineCategory,
+  MdOutlineChatBubbleOutline,
   MdOutlineContentCopy,
-  MdOutlineCreateNewFolder,
   MdOutlineDashboardCustomize,
   MdOutlineDelete,
   MdOutlineDescription,
-  MdOutlineDifference,
   MdOutlineEmail,
   MdOutlineExitToApp,
   MdOutlineFace,
@@ -58,23 +57,24 @@ import {
   MdOutlineIntegrationInstructions,
   MdOutlineInventory2,
   MdOutlineListAlt,
-  MdOutlineLocalAtm,
   MdOutlineMoreVert,
   MdOutlineMoveToInbox,
   MdOutlineNotificationsNone,
   MdOutlineOpenInFull,
+  MdOutlinePalette,
   MdOutlinePause,
   MdOutlinePlayArrow,
   MdOutlineQuestionAnswer,
   MdOutlineSettings,
+  MdOutlineSubject,
   MdOutlineTask,
   MdOutlineTimer,
-  MdOutlineToll,
   MdOutlineTune,
   MdOutlineVisibility,
+  MdOutlineVolumeOff,
+  MdOutlineVolumeUp,
   MdPause,
   MdPauseCircle,
-  MdPayments,
   MdPeople,
   MdPerson,
   MdPictureAsPdf,
@@ -84,11 +84,11 @@ import {
   MdRemove,
   MdReplay,
   MdRuleFolder,
-  MdSave,
   MdSearch,
   MdSecurity,
-  MdSensors,
   MdSignalCellularAlt,
+  MdSort,
+  MdSubdirectoryArrowLeft,
   MdTopic,
   MdTrendingDown,
   MdTrendingUp,
@@ -403,20 +403,6 @@ export const Icons = {
       </defs>
     </svg>
   ),
-  Notion: (props: any) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={20}
-      height={20}
-      fill="none"
-      {...props}
-    >
-      <path
-        fill="currentColor"
-        d="M3.778 3.571c.616.5.847.463 2.004.385l10.902-.654c.231 0 .039-.23-.038-.27l-1.811-1.308c-.347-.27-.81-.578-1.695-.5l-10.557.77c-.385.037-.462.23-.308.384l1.503 1.193Zm.655 2.541v11.471c0 .617.308.848 1.001.81l11.982-.694c.694-.038.77-.462.77-.963V5.342c0-.5-.191-.77-.616-.731l-12.521.73c-.462.04-.616.27-.616.771Zm11.828.616c.077.346 0 .693-.347.732l-.578.115v8.469c-.501.269-.963.423-1.348.423-.617 0-.771-.193-1.233-.77L8.978 9.77v5.736l1.195.27s0 .692-.964.692l-2.657.154c-.078-.154 0-.539.27-.616l.693-.192V8.23l-.963-.077c-.077-.346.115-.846.655-.885l2.85-.192 3.93 6.005V7.767l-1.001-.115c-.077-.424.23-.731.616-.77l2.659-.154ZM1.697.954l10.98-.809c1.35-.115 1.696-.038 2.543.578l3.506 2.463c.578.424.77.54.77 1.001V17.7c0 .847-.308 1.348-1.386 1.424l-12.752.77c-.81.039-1.195-.076-1.619-.616l-2.581-3.349c-.463-.616-.655-1.078-.655-1.617V2.3c0-.693.308-1.27 1.194-1.347Z"
-      />
-    </svg>
-  ),
   Github: (props: any) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -437,20 +423,6 @@ export const Icons = {
       />
     </svg>
   ),
-  Figma: (props: any) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={17}
-      height={22}
-      fill="none"
-      {...props}
-    >
-      <path
-        fill="currentColor"
-        d="M.602 4.116A4.116 4.116 0 0 1 4.718 0h7.062a4.116 4.116 0 0 1 2.258 7.558 4.116 4.116 0 0 1-2.258 7.558h-.089a4.101 4.101 0 0 1-2.768-1.07v3.793C8.923 20.143 7.033 22 4.74 22 2.472 22 .602 20.163.602 17.884c0-1.44.738-2.706 1.857-3.442A4.112 4.112 0 0 1 .602 11c0-1.44.738-2.706 1.858-3.442A4.112 4.112 0 0 1 .602 4.116Zm6.973 4.116H4.718a2.768 2.768 0 0 0-.018 5.536h2.875V8.232ZM8.923 11a2.768 2.768 0 0 0 2.768 2.768h.09a2.768 2.768 0 0 0 0-5.536h-.09A2.768 2.768 0 0 0 8.923 11Zm-4.205 4.116H4.7a2.768 2.768 0 0 0-2.75 2.768c0 1.523 1.256 2.768 2.79 2.768 1.559 0 2.835-1.265 2.835-2.813v-2.723H4.718Zm0-13.768a2.768 2.768 0 1 0 0 5.536h2.857V1.348H4.718Zm4.205 5.536h2.857a2.768 2.768 0 0 0 0-5.536H8.923v5.536Z"
-      />
-    </svg>
-  ),
   OpenAI: (props: any) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -465,44 +437,64 @@ export const Icons = {
       />
     </svg>
   ),
-  FlightTakeoff: MdFlightTakeoff,
-  Desk: MdDesk,
-  FastFood: MdFastfood,
-  Save: MdSave,
-  HomeWork: MdHomeWork,
-  Payments: MdPayments,
-  Devices: MdDevices,
-  AccountBalance: MdOutlineAccountBalanceWallet,
+  Sidebar: (props: any) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      fill="currentColor"
+      viewBox="0 -960 960 960"
+      {...props}
+    >
+      <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm240-80h400v-480H400v480Zm-80 0v-480H160v480h160Zm-160 0v-480 480Zm160 0h80-80Zm0-480h80-80Z" />
+    </svg>
+  ),
+  SidebarFilled: (props: any) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={24}
+      height={24}
+      fill="currentColor"
+      viewBox="0 -960 960 960"
+      {...props}
+    >
+      <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h160v640H160Zm240 0v-640h400q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H400Z" />
+    </svg>
+  ),
   Fence: MdFence,
-  Celebration: MdCelebration,
   Refresh: MdRefresh,
   Inventory2: MdInventory2,
-  SettingsCog: Settings,
   Person: MdPerson,
   Peolple: MdPeople,
   Notifications: MdOutlineNotificationsNone,
   ChevronDown: MdExpandMore,
+  ChevronUp: MdExpandLess,
   TrendingUp: MdTrendingUp,
   TrendingDown: MdTrendingDown,
   Category: MdOutlineCategory,
-  Difference: MdOutlineDifference,
   Visibility: MdOutlineVisibility,
   Face: MdOutlineFace,
-  Apartment: MdApartment,
-  Sensors: MdSensors,
-  DynamicForm: MdDynamicForm,
   MoreHoriz: MdMoreHoriz,
   Pdf: MdPictureAsPdf,
   DriveFileMove: MdDriveFileMove,
+  Enter: MdSubdirectoryArrowLeft,
   FolderSpecial: MdFolderSpecial,
   Topic: MdTopic,
   BrokenImage: MdOutlineBrokenImage,
   Description: MdDescription,
   FolderZip: MdFolderZip,
-  ArrowRight: MdArrowRight,
   ChevronRight: MdChevronRight,
   ChevronLeft: MdChevronLeft,
   ArrowLeft: MdArrowLeft,
+  ArrowRight: MdArrowRight,
+  ArrowDown: MdOutlineArrowDownward,
+  ArrowUp: MdArrowUpward,
+  ArrowBack: MdArrowBack,
+  KeyboardArrowDown: MdKeyboardArrowDown,
+  KeyboardArrowUp: MdKeyboardArrowUp,
+  KeyboardArrowLeft: MdKeyboardArrowLeft,
+  KeyboardArrowRight: MdKeyboardArrowRight,
+  ArrowForward: MdOutlineArrowForward,
   Folder: MdFolder,
   FileUpload: MdFileUpload,
   Search: MdSearch,
@@ -513,6 +505,7 @@ export const Icons = {
   Image: MdOutlineInsertPhoto,
   Security: MdSecurity,
   AI: MdAutoAwesome,
+  AIOutline: MdOutlineAutoAwesome,
   Tracker: MdOutlineTimer,
   WorkInProgress: MdOutlineHandyman,
   Add: MdAdd,
@@ -529,21 +522,25 @@ export const Icons = {
   PlayCircle: MdPlayCircle,
   PauseCircle: MdPauseCircle,
   MoreVertical: MdOutlineMoreVert,
-  ArrowDown: MdOutlineArrowDownward,
-  ArrowBack: MdArrowBack,
   ExitToApp: MdOutlineExitToApp,
   Match: MdOutlineTask,
   Email: MdOutlineEmail,
   QuestionAnswer: MdOutlineQuestionAnswer,
   Click: MdSignalCellularAlt,
-  Salary: MdOutlineLocalAtm,
-  Fees: MdOutlineToll,
   Tune: MdOutlineTune,
-  ArrowForward: MdOutlineArrowForward,
+  Change: MdChangeHistory,
   Forwarded: MdOutlineForwardToInbox,
   Delete: MdOutlineDelete,
   FolderImports: MdRuleFolder,
   FolderTransactions: MdTopic,
   Calendar: MdEditCalendar,
   Reply: MdReplay,
+  Sort: MdSort,
+  Backspace: MdOutlineBackspace,
+  Palette: MdOutlinePalette,
+  Subject: MdOutlineSubject,
+  ChatBubble: MdOutlineChatBubbleOutline,
+  Menu: MdMenu,
+  Mute: MdOutlineVolumeOff,
+  UnMute: MdOutlineVolumeUp,
 };

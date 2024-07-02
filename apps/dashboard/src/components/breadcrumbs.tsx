@@ -37,8 +37,9 @@ export function Breadcrumbs({ folders = [] }) {
           <BreadcrumbLink asChild>
             <Link href={href}>{translatedFolderName(t, folder)}</Link>
           </BreadcrumbLink>
+
+          <BreadcrumbSeparator />
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
       </>
     );
   });

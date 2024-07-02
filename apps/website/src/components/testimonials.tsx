@@ -1,4 +1,3 @@
-import { BlurryCircle } from "@/components/blurry-circle";
 import { InfiniteMovingCards } from "@/components/infinite-moving-cards";
 
 const testimonials = [
@@ -38,7 +37,7 @@ const testimonials = [
   {
     name: "Zeno Rocha",
     avatarUrl:
-      "https://pbs.twimg.com/profile_images/1145166093029265408/9gJSVrQ7_400x400.jpg",
+      "https://pbs.twimg.com/profile_images/1792735373887696896/Nys5Q2b3_400x400.jpg",
     handle: "@zenorocha",
     verified: true,
     quote: "this is absolutely amazing",
@@ -58,6 +57,15 @@ const testimonials = [
     handle: "@calcom",
     verified: true,
     quote: "We love @middayai 🖤",
+  },
+  {
+    name: "Guillermo Rauch",
+    avatarUrl:
+      "https://pbs.twimg.com/profile_images/1783856060249595904/8TfcCN0r_400x400.jpg",
+    handle: "@rauchg",
+    verified: true,
+    quote:
+      "nice to see @middayai generative ui features built on @vercel AI sdk midday is becoming one of the best OSS @nextjs real-world apps",
   },
   {
     name: "Kyle @ KyTech",
@@ -105,9 +113,8 @@ const testimonials = [
 export function Testimonials() {
   return (
     <div className="relative pb-22">
-      <h3 className="text-4xl mb-8">What people say</h3>
+      <h3 className="text-4xl mb-8 font-medium">What people say</h3>
       <InfiniteMovingCards items={testimonials} direction="left" speed="slow" />
-      <BlurryCircle className="absolute top-2 right-[200px] bg-[#3633D0]/10 -z-10 hidden md:block" />
     </div>
   );
 }

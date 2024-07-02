@@ -1,24 +1,25 @@
 "use client";
 
 import { deleteTransactionsAction } from "@/actions/delete-transactions-action";
+import type { UpdateTransactionValues } from "@/actions/schema";
 import { updateColumnVisibilityAction } from "@/actions/update-column-visibility-action";
 import { updateTransactionAction } from "@/actions/update-transaction-action";
 import { TransactionSheet } from "@/components/sheets/transaction-sheet";
 import { useTransactionsStore } from "@/store/transactions";
-import { createClient } from "@midday/supabase/client";
+import { Cookies } from "@/utils/constants";
 import { Button } from "@midday/ui/button";
+import { cn } from "@midday/ui/cn";
 import { Spinner } from "@midday/ui/spinner";
 import { Table, TableBody, TableCell, TableRow } from "@midday/ui/table";
 import { useToast } from "@midday/ui/use-toast";
 import {
-  ColumnDef,
-  VisibilityState,
+  type ColumnDef,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -30,24 +31,27 @@ import { ExportBar } from "./export-bar";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  hasNextPage?: boolean;
+  hasFilters?: boolean;
+  loadMore: () => void;
+  query?: string;
+  pageSize: number;
+  meta: Record<string, string>;
+  initialColumnVisibility: VisibilityState;
 }
 
 export function DataTable<TData, TValue>({
   columns,
+  query,
   data: initialData,
-  teamId,
-  initialTransactionId,
   pageSize,
   loadMore,
-  meta,
+  meta: pageMeta,
   hasFilters,
   hasNextPage: initialHasNextPage,
   initialColumnVisibility,
-  page,
 }: DataTableProps<TData, TValue>) {
-  const supabase = createClient();
   const { toast } = useToast();
-  const router = useRouter();
   const [rowSelection, setRowSelection] = useState({});
   const [data, setData] = useState(initialData);
   const [from, setFrom] = useState(pageSize);
@@ -55,6 +59,13 @@ export function DataTable<TData, TValue>({
   const [hasNextPage, setHasNextPage] = useState(initialHasNextPage);
   const { setColumns, setTransactionIds, setCanDelete } =
     useTransactionsStore();
+
+  const [transactionId, setTransactionId] = useQueryState("id");
+
+  const selectedRows = Object.keys(rowSelection).length;
+  const showBottomBar =
+    (hasFilters && !selectedRows) || (query && !selectedRows);
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility ?? {}
   );
@@ -79,6 +90,27 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  const handleUpdateTransaction = (
+    values: UpdateTransactionValues,
+    optimisticData?: any
+  ) => {
+    setData((prev) => {
+      return prev.map((item) => {
+        if (item.id === values.id) {
+          return {
+            ...item,
+            ...values,
+            ...(optimisticData ?? {}),
+          };
+        }
+
+        return item;
+      });
+    });
+
+    updateTransaction.execute(values);
+  };
+
   const deleteTransactions = useAction(deleteTransactionsAction, {
     onError: () => {
       toast({
@@ -88,6 +120,14 @@ export function DataTable<TData, TValue>({
       });
     },
   });
+
+  const handleDeleteTransactions = ({ ids }) => {
+    setData((prev) => {
+      return prev.filter((item) => !ids?.includes(item.id));
+    });
+
+    deleteTransactions.execute({ ids });
+  };
 
   const setOpen = (id: string | boolean) => {
     if (id) {
@@ -121,8 +161,8 @@ export function DataTable<TData, TValue>({
     meta: {
       setOpen,
       copyUrl: handleCopyUrl,
-      updateTransaction,
-      deleteTransactions,
+      updateTransaction: handleUpdateTransaction,
+      deleteTransactions: handleDeleteTransactions,
     },
     state: {
       rowSelection,
@@ -147,11 +187,6 @@ export function DataTable<TData, TValue>({
       setHasNextPage(false);
     }
   };
-
-  const [transactionId, setTransactionId] = useQueryState("id", {
-    defaultValue: initialTransactionId,
-    shallow: false,
-  });
 
   const selectedTransaction = data.find(
     (transaction) => transaction?.id === transactionId
@@ -182,7 +217,7 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     updateColumnVisibilityAction({
-      key: "transactions-columns",
+      key: Cookies.TransactionsColumns,
       data: columnVisibility,
     });
   }, [columnVisibility]);
@@ -197,65 +232,8 @@ export function DataTable<TData, TValue>({
     setData(initialData);
   }, [initialData]);
 
-  useEffect(() => {
-    const currentIndex = data.findIndex((row) => row.id === transactionId);
-
-    const keyDownHandler = (evt: KeyboardEvent) => {
-      if (transactionId && evt.key === "ArrowDown") {
-        evt.preventDefault();
-        const nextItem = data.at(currentIndex + 1);
-
-        if (nextItem) {
-          setTransactionId(nextItem.id);
-        }
-      }
-
-      if (transactionId && evt.key === "Escape") {
-        setTransactionId(null);
-      }
-
-      if (transactionId && evt.key === "ArrowUp") {
-        evt.preventDefault();
-
-        const prevItem = data.at(currentIndex - 1);
-
-        if (currentIndex > 0 && prevItem) {
-          setTransactionId(prevItem.id);
-        }
-      }
-    };
-
-    document.addEventListener("keydown", keyDownHandler);
-
-    return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-    };
-  }, [transactionId, data, setTransactionId]);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("realtime_transactions")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "transactions",
-          filter: `team_id=eq.${teamId}`,
-        },
-        () => {
-          router.refresh();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, router, teamId]);
-
   return (
-    <div className="rounded-md mb-8 relative">
+    <div className="mb-8 relative">
       <Table>
         <DataTableHeader table={table} />
 
@@ -265,11 +243,22 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className="h-[45px] cursor-default"
+                className="h-[40px] md:h-[45px] cursor-default"
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
+                    className={cn(
+                      "px-3 md:px-4 py-2",
+                      (cell.column.id === "select" ||
+                        cell.column.id === "actions" ||
+                        cell.column.id === "category" ||
+                        cell.column.id === "bank_account" ||
+                        cell.column.id === "assigned" ||
+                        cell.column.id === "method" ||
+                        cell.column.id === "status") &&
+                        "hidden md:table-cell"
+                    )}
                     onClick={() => {
                       if (
                         cell.column.id !== "select" &&
@@ -307,22 +296,18 @@ export function DataTable<TData, TValue>({
         isOpen={Boolean(transactionId)}
         setOpen={setOpen}
         data={selectedTransaction}
-        transactionId={transactionId}
+        ids={data?.map(({ id }) => id)}
+        updateTransaction={handleUpdateTransaction}
       />
 
-      {meta.count > 0 && (
-        <BottomBar
-          show={hasFilters && !Object.keys(rowSelection).length}
-          page={page}
-          count={meta.count}
-          hasNextPage={hasNextPage}
-          totalAmount={meta.totalAmount}
-          currency={meta.currency}
-        />
-      )}
+      <BottomBar
+        show={showBottomBar}
+        count={pageMeta?.count}
+        totalAmount={pageMeta?.totalAmount}
+      />
 
       <ExportBar
-        selected={Object.keys(rowSelection).length}
+        selected={selectedRows}
         deselectAll={() => table.toggleAllPageRowsSelected(false)}
         transactionIds={Object.keys(rowSelection)}
       />

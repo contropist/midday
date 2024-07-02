@@ -1,12 +1,15 @@
+import { AccountType } from "@midday/engine/src/utils/account";
 import { capitalCase } from "change-case";
-import {
+import type {
   Account as BaseAccount,
+  Balance as BaseAccountBalance,
   Transaction as BaseTransaction,
 } from "../types";
-import {
+import type {
   Transaction,
   TransactionDescription,
   TransformAccount,
+  TransformAccountBalance,
   TransformAccountName,
   TransformTransaction,
 } from "./types";
@@ -42,6 +45,14 @@ export const mapTransactionMethod = (type?: string) => {
 };
 
 export const transformTransactionName = (transaction: Transaction) => {
+  if (transaction?.creditorName) {
+    return capitalCase(transaction.creditorName);
+  }
+
+  if (transaction?.debtorName) {
+    return capitalCase(transaction?.debtorName);
+  }
+
   if (transaction?.additionalInformation) {
     return capitalCase(transaction.additionalInformation);
   }
@@ -52,14 +63,6 @@ export const transformTransactionName = (transaction: Transaction) => {
 
   if (transaction?.remittanceInformationUnstructured) {
     return capitalCase(transaction.remittanceInformationUnstructured);
-  }
-
-  if (transaction?.creditorName) {
-    return capitalCase(transaction.creditorName);
-  }
-
-  if (transaction?.debtorName) {
-    return capitalCase(transaction?.debtorName);
   }
 
   const remittanceInformation =
@@ -87,6 +90,14 @@ const transformDescription = ({
     if (description !== name) {
       return description;
     }
+  }
+
+  const additionalInformation =
+    transaction.additionalInformation &&
+    capitalCase(transaction.additionalInformation);
+
+  if (transaction?.additionalInformation && additionalInformation !== name) {
+    return capitalCase(transaction.additionalInformation);
   }
 
   return null;
@@ -176,5 +187,13 @@ export const transformAccount = ({
       name: bank?.name,
     },
     provider: "gocardless",
+    type: AccountType.DEPOSITORY,
   };
 };
+
+export const transformAccountBalance = (
+  account: TransformAccountBalance
+): BaseAccountBalance => ({
+  currency: account.currency,
+  amount: +account.amount,
+});

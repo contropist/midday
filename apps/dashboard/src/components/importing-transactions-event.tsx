@@ -1,10 +1,14 @@
 "use client";
 
-import { cn } from "@midday/ui/utils";
+import { cn } from "@midday/ui/cn";
 import { useEventRunStatuses } from "@trigger.dev/react";
-import Lottie from "lottie-react";
 import { useTheme } from "next-themes";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+
+const Lottie = dynamic(() => import("lottie-react"), {
+  ssr: false,
+});
 
 export function ImportingTransactionsEvent({
   eventId,

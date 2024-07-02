@@ -1,14 +1,14 @@
 import { ErrorFallback } from "@/components/error-fallback";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
 import { Suspense } from "react";
-import { TrackerWidget } from "./tracker-widget";
+import { TrackerWidget, TrackerWidgetSkeleton } from "./tracker-widget";
 
-export function Tracker({ date }) {
+export function Tracker({ date, hideDaysIndicators }) {
   return (
-    <div className="flex-1 border p-8 relative h-full">
+    <div className="border aspect-square overflow-hidden relative p-4 md:p-8">
       <ErrorBoundary errorComponent={ErrorFallback}>
-        <Suspense>
-          <TrackerWidget date={date} />
+        <Suspense fallback={<TrackerWidgetSkeleton key={date} />}>
+          <TrackerWidget date={date} hideDaysIndicators={hideDaysIndicators} />
         </Suspense>
       </ErrorBoundary>
     </div>

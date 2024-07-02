@@ -1,4 +1,4 @@
-import { env } from "@/env.mjs";
+import * as crypto from "node:crypto";
 import { getI18n } from "@midday/email/locales";
 import {
   NotificationTypes,
@@ -16,19 +16,34 @@ export const maxDuration = 300; // 5min
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const key = headers().get("x-api-key");
+  const text = await req.clone().text();
+  const signature = headers().get("x-supabase-signature");
 
-  if (key !== env.API_ROUTE_SECRET) {
+  if (!signature) {
+    return NextResponse.json({ message: "Missing signature" }, { status: 401 });
+  }
+
+  const decodedSignature = Buffer.from(signature, "base64");
+  const calculatedSignature = crypto
+    .createHmac("sha256", process.env.WEBHOOK_SECRET_KEY!)
+    .update(text)
+    .digest();
+
+  const hmacMatch = crypto.timingSafeEqual(
+    decodedSignature,
+    calculatedSignature
+  );
+
+  if (!hmacMatch) {
     return NextResponse.json({ message: "Not Authorized" }, { status: 401 });
   }
 
+  const body = await req.json();
   const supabase = createClient({ admin: true });
 
-  const body = await req.json();
-
   const { data: transactionData } = await supabase
-    .from("decrypted_transactions")
-    .select("id, name:decrypted_name")
+    .from("transactions")
+    .select("id, name")
     .eq("id", body.record.id)
     .eq("team_id", body.record.team_id)
     .single()
@@ -41,13 +56,11 @@ export async function POST(req: Request) {
     .select("*")
     .eq("amount", Math.abs(body.record.amount))
     .eq("team_id", body.record.team_id)
-    .eq("archived", false)
-    .eq("trash", false)
     .gte("created_at", subDays(new Date(), 45).toISOString())
     .is("transaction_id", null);
 
   // NOTE: If we match more than one inbox record we can't be sure of a match
-  if (inboxData.length === 1) {
+  if (inboxData && inboxData.length === 1) {
     const inbox = inboxData.at(0);
 
     const { data: attachmentData } = await supabase

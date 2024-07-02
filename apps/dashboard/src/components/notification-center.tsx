@@ -222,7 +222,7 @@ export function NotificationCenter() {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="rounded-xl h-[535px] w-[400px] mr-7 p-0 overflow-hidden relative"
+        className="h-[535px] w-screen md:w-[400px] mr-7 p-0 overflow-hidden relative"
         sideOffset={10}
       >
         <Tabs defaultValue="inbox">
@@ -245,7 +245,7 @@ export function NotificationCenter() {
               className="rounded-full bg-ransparent hover:bg-accent"
               onClick={() => setOpen(false)}
             >
-              <Icons.SettingsCog className="text-[#606060]" size={16} />
+              <Icons.Settings className="text-[#606060]" size={16} />
             </Button>
           </Link>
 

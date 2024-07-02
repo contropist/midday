@@ -3,7 +3,8 @@ import { Grid } from "@/components/pitch/ui";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pitch | Midday",
+  title: "Pitch",
+  description: "Pitch deck",
 };
 
 export default function Page() {

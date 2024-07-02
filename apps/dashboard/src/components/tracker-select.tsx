@@ -1,6 +1,6 @@
 import { Button } from "@midday/ui/button";
+import { cn } from "@midday/ui/cn";
 import { Icons } from "@midday/ui/icons";
-import { cn } from "@midday/ui/utils";
 import {
   addDays,
   addMonths,
@@ -59,7 +59,7 @@ export function TrackerSelect({ date, className, onSelect, disableKeyboard }) {
   useHotkeys("arrowRight", selectNextDay);
 
   return (
-    <div className={cn("flex items-center border rounded-md h-9", className)}>
+    <div className={cn("flex items-center border h-9", className)}>
       <Button
         variant="ghost"
         size="icon"

@@ -5,12 +5,15 @@ import { unstable_cache } from "next/cache";
 
 export async function fetchStats() {
   const supabase = createClient({ admin: true });
-  const supabaseStorage = createClient({ admin: true, schema: "storage" });
+  const supabaseStorage = createClient({
+    admin: true,
+    db: { schema: "storage" },
+  });
 
   const [
     { count: users },
     { count: transactions },
-    { count: bankAcounts },
+    { count: bankAccounts },
     { count: trackerEntries },
     { count: inboxItems },
     { count: bankConnections },
@@ -65,7 +68,7 @@ export async function fetchStats() {
     },
     ["stats"],
     {
-      revalidate: 1,
+      revalidate: 800,
       tags: ["stats"],
     }
   )();
@@ -73,7 +76,7 @@ export async function fetchStats() {
   return {
     users,
     transactions,
-    bankAcounts,
+    bankAccounts,
     trackerEntries,
     inboxItems,
     bankConnections,

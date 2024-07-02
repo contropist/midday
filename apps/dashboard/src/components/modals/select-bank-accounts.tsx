@@ -26,15 +26,17 @@ import { useToast } from "@midday/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Image from "next/image";
-import {
-  parseAsBoolean,
-  parseAsString,
-  parseAsStringEnum,
-  useQueryStates,
-} from "nuqs";
+import { useRouter } from "next/navigation";
+// import {
+//   parseAsBoolean,
+//   parseAsString,
+//   parseAsStringEnum,
+//   useQueryStates,
+// } from "nuqs";
+import queryString from "query-string";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import type z from "zod";
 import { LoadingTransactionsEvent } from "../loading-transactions-event";
 
 function RowsSkeleton() {
@@ -58,35 +60,52 @@ function RowsSkeleton() {
   );
 }
 
-export function SelectBankAccountsModal({ countryCode }) {
+export function SelectBankAccountsModal() {
   const { toast } = useToast();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [eventId, setEventId] = useState<string>();
+  const router = useRouter();
 
-  const [params, setParams] = useQueryStates({
-    step: parseAsStringEnum(["connect", "account", "gocardless"]),
-    error: parseAsBoolean,
-    ref: parseAsString,
-    token: parseAsString,
-    enrollment_id: parseAsString,
-    institution_id: parseAsString,
-    provider: parseAsStringEnum(["teller", "plaid", "gocardless"]),
-  });
+  // const [_, setParams] = useQueryStates({
+  //   step: parseAsStringEnum(["connect", "account", "gocardless"]),
+  //   error: parseAsBoolean,
+  //   ref: parseAsString,
+  //   token: parseAsString,
+  //   enrollment_id: parseAsString,
+  //   institution_id: parseAsString,
+  //   provider: parseAsStringEnum(["teller", "plaid", "gocardless"]),
+  // countryCode: parseAsString
+  // });
 
-  const { provider, step, error, token, ref, enrollment_id, institution_id } =
-    params;
+  // NOTE: GoCardLess sometimes return amp; back in the redirect URL
+  // Once fixed we can use nuqs and uninstall query-string
+  const params = queryString.parse(
+    window.location.search.replaceAll("amp;", "")
+  );
+
+  const {
+    provider,
+    step,
+    error,
+    token,
+    ref,
+    enrollment_id,
+    institution_id,
+    countryCode,
+  } = params;
 
   const isOpen = step === "account" && !error;
 
   const onClose = () => {
-    setParams(
-      { step: null },
-      {
-        // NOTE: Rerender so the overview modal is visible
-        shallow: false,
-      }
-    );
+    router.push("/");
+    // setParams(
+    //   { step: null },
+    //   {
+    //     // NOTE: Rerender so the overview modal is visible
+    //     shallow: false,
+    //   }
+    // );
   };
 
   const connectBankAction = useAction(connectBankAccountAction, {
@@ -135,13 +154,14 @@ export function SelectBankAccountsModal({ countryCode }) {
           accessToken: token,
           enrollmentId: enrollment_id,
           accounts: data.map((account) => ({
-            account_id: account.id,
-            bank_name: account.institution.name,
-            currency: account.currency,
             name: account.name,
             institution_id: account.institution.id,
             logo_url: account.institution?.logo,
+            account_id: account.id,
+            bank_name: account.institution.name,
+            currency: account.currency,
             enabled: false,
+            type: account.type,
           })),
         });
       }
@@ -245,7 +265,7 @@ export function SelectBankAccountsModal({ countryCode }) {
                       />
                     ))}
 
-                    <div className="fixed bottom-6 left-6 right-6 z-10 bg-background pt-4">
+                    <div className="fixed bottom-0 left-0 right-0 z-10 bg-background pt-4 px-6 pb-6">
                       <Button
                         className="w-full"
                         type="submit"

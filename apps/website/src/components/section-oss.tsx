@@ -16,10 +16,10 @@ import { GithubStats } from "./github-stats";
 
 export function SectionOSS() {
   return (
-    <section className="container mb-32">
+    <section className="container mb-16 md:mb-32">
       <div className="mb-12">
-        <h2 className="text-4xl mb-4">Open startup</h2>
-        <p className="text-[#707070]">
+        <h2 className="text-4xl mb-4 font-medium">Open startup</h2>
+        <p className="text-[#707070] max-w-[500px]">
           We believe in being as transparent as possible, from{" "}
           <a
             href="https://git.new/midday"
@@ -33,11 +33,15 @@ export function SectionOSS() {
           <Link href="/open-startup" className="underline">
             metrics
           </Link>
-          .
+          . You can also{" "}
+          <Link href="/feature-request" className="underline">
+            request a feature
+          </Link>{" "}
+          and vote on which ones we should prioritize.
         </p>
       </div>
 
-      <div className="border border-border rounded-2xl bg-white dark:bg-[#121212] p-8 md:p-10">
+      <div className="border border-border bg-[#121212] p-8 md:p-10">
         <div className="flex flex-col md:flex-row md:space-x-16">
           <div className="md:basis-1/2">
             <Accordion
@@ -141,7 +145,7 @@ export function SectionOSS() {
           </div>
           <div className="md:basis-1/2">
             <a href="https://git.new/midday" target="_blank" rel="noreferrer">
-              <div className="aspect-square md:max-h-[280px] w-full md:border border-border rounded-2xl md:p-10 mt-0 md:mt-0">
+              <div className="aspect-square md:max-h-[280px] w-full md:border border-border md:p-10 mt-0 md:mt-0">
                 <div className="md:border-b-[1px] border-border pb-8 mb-8">
                   <h3 className="font-medium text-xl md:text-2xl hidden md:block">
                     Midday

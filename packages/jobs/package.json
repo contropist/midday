@@ -7,21 +7,21 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "check:types": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google-cloud/documentai": "^8.2.0",
-    "@langchain/core": "^0.1.51",
-    "@langchain/openai": "^0.0.23",
-    "@trigger.dev/react": "^2.3.18",
-    "@trigger.dev/resend": "^2.3.18",
-    "@trigger.dev/sdk": "^2.3.18",
-    "@trigger.dev/supabase": "^2.3.18",
-    "d3-dsv": "3",
-    "langchain": "^0.1.30",
-    "nanoid": "^5.0.6"
-  },
-  "devDependencies": {
-    "request": "^2.88.2"
+    "@fast-csv/format": "5.0.0",
+    "@langchain/community": "^0.2.13",
+    "@langchain/core": "^0.2.9",
+    "@langchain/openai": "^0.2.0",
+    "@midday/documents": "workspace:*",
+    "@midday/import": "workspace:*",
+    "@trigger.dev/react": "2.3.19",
+    "@trigger.dev/resend": "2.3.19",
+    "@trigger.dev/sdk": "2.3.19",
+    "@trigger.dev/supabase": "^2.3.19",
+    "change-case": "^5.4.4",
+    "langchain": "^0.2.6",
+    "nanoid": "^5.0.7"
   }
 }

@@ -1,4 +1,3 @@
-import { StatusWidget } from "@/components/status-widget";
 import { getUser } from "@midday/supabase/cached-queries";
 import { Avatar, AvatarFallback } from "@midday/ui/avatar";
 import {
@@ -13,7 +12,6 @@ import {
 } from "@midday/ui/dropdown-menu";
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense } from "react";
 import { SignOut } from "./sign-out";
 import { ThemeSwitch } from "./theme-switch";
 
@@ -27,7 +25,7 @@ export async function UserMenu({ onlySignOut }) {
           {userData?.avatar_url && (
             <Image
               src={userData?.avatar_url}
-              alt={userData.full_name}
+              alt={userData?.full_name}
               width={32}
               height={32}
             />
@@ -59,26 +57,23 @@ export async function UserMenu({ onlySignOut }) {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <Link href="/account">
+              <Link prefetch href="/account">
                 <DropdownMenuItem>
                   Account
                   <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </Link>
 
-              <Link href="/account/teams">
-                <DropdownMenuItem>
-                  Teams
-                  <DropdownMenuShortcut>⌘T</DropdownMenuShortcut>
-                </DropdownMenuItem>
+              <Link prefetch href="/account/support">
+                <DropdownMenuItem>Support</DropdownMenuItem>
               </Link>
 
-              {/* <Link href="/apps">
+              <Link prefetch href="/account/teams">
                 <DropdownMenuItem>
-                  Apps
-                  <DropdownMenuShortcut>⌘A</DropdownMenuShortcut>
+                  Teams
+                  <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
                 </DropdownMenuItem>
-              </Link> */}
+              </Link>
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
@@ -89,14 +84,6 @@ export async function UserMenu({ onlySignOut }) {
             <DropdownMenuSeparator />
           </>
         )}
-
-        <DropdownMenuItem>
-          <Suspense>
-            <StatusWidget />
-          </Suspense>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
 
         <SignOut />
       </DropdownMenuContent>

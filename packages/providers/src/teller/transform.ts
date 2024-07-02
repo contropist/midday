@@ -1,9 +1,17 @@
+import { AccountType, getType } from "@midday/engine/src/utils/account";
 import { capitalCase } from "change-case";
-import {
+import type {
   Account as BaseAccount,
+  Balance as BaseAccountBalance,
   Transaction as BaseTransaction,
 } from "../types";
-import { Transaction, TransformAccount, TransformTransaction } from "./types";
+import type {
+  FormatAmount,
+  Transaction,
+  TransformAccount,
+  TransformAccountBalance,
+  TransformTransaction,
+} from "./types";
 
 export const mapTransactionMethod = (type?: string) => {
   switch (type) {
@@ -32,7 +40,15 @@ export const mapTransactionMethod = (type?: string) => {
   }
 };
 
-export const mapTransactionCategory = (transaction: Transaction) => {
+type MapTransactionCategory = {
+  transaction: Transaction;
+  amount: number;
+};
+
+export const mapTransactionCategory = ({
+  transaction,
+  amount,
+}: MapTransactionCategory) => {
   if (transaction.type === "transfer") {
     return "transfer";
   }
@@ -41,7 +57,7 @@ export const mapTransactionCategory = (transaction: Transaction) => {
     return "fees";
   }
 
-  if (+transaction.amount > 0) {
+  if (amount > 0) {
     return "income";
   }
 
@@ -56,9 +72,9 @@ export const mapTransactionCategory = (transaction: Transaction) => {
     case "tax":
       return "taxes";
     case "office":
-      return "office_supplies";
+      return "office-supplies";
     case "phone":
-      return "internet_and_telephone";
+      return "internet-and-telephone";
     case "software":
       return "software";
     case "entertainment":
@@ -72,25 +88,52 @@ export const mapTransactionCategory = (transaction: Transaction) => {
   }
 };
 
+export const transformDescription = (transaction: Transaction) => {
+  const description =
+    transaction?.details?.counterparty?.name &&
+    capitalCase(transaction.details.counterparty.name);
+
+  if (transaction.description !== description && description) {
+    return capitalCase(description);
+  }
+
+  return null;
+};
+
+const formatAmout = ({ amount, accountType }: FormatAmount) => {
+  // NOTE: For account credit positive values when money moves out of the account; negative values when money moves in.
+  if (accountType === AccountType.CREDIT) {
+    return +(amount * -1);
+  }
+
+  return +amount;
+};
+
 export const transformTransaction = ({
   transaction,
   teamId,
   bankAccountId,
+  accountType,
 }: TransformTransaction): BaseTransaction => {
   const method = mapTransactionMethod(transaction.type);
+  const description = transformDescription(transaction);
+  const amount = formatAmout({
+    amount: +transaction.amount,
+    accountType,
+  });
 
   return {
     date: transaction.date,
     name: transaction.description && capitalCase(transaction.description),
-    description: null,
+    description,
     method,
     internal_id: `${teamId}_${transaction.id}`,
-    amount: +transaction.amount,
+    amount,
     currency: "USD",
-    bank_account_id: bankAccountId,
-    category: mapTransactionCategory(transaction),
-    team_id: teamId,
+    category: mapTransactionCategory({ transaction, amount }),
     balance: transaction.running_balance,
+    team_id: teamId,
+    bank_account_id: bankAccountId,
     status: transaction?.status === "posted" ? "posted" : "pending",
   };
 };
@@ -101,6 +144,7 @@ export const transformAccount = ({
   currency,
   institution,
   enrollment_id,
+  type,
 }: TransformAccount): BaseAccount => {
   return {
     id,
@@ -112,5 +156,13 @@ export const transformAccount = ({
     },
     enrollment_id: enrollment_id,
     provider: "teller",
+    type: getType(type),
   };
 };
+
+export const transformAccountBalance = (
+  account: TransformAccountBalance
+): BaseAccountBalance => ({
+  currency: account.currency,
+  amount: +account.amount,
+});

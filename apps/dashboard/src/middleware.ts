@@ -1,5 +1,5 @@
-import { client } from "@midday/kv";
-import { createClient } from "@midday/supabase/middleware";
+import { updateSession } from "@midday/supabase/middleware";
+import { createClient } from "@midday/supabase/server";
 import { createI18nMiddleware } from "next-international/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -10,8 +10,8 @@ const I18nMiddleware = createI18nMiddleware({
 });
 
 export async function middleware(request: NextRequest) {
-  const response = I18nMiddleware(request);
-  const { supabase } = createClient(request, response);
+  const response = await updateSession(request, I18nMiddleware(request));
+  const supabase = createClient();
   const url = new URL("/", request.url);
   const nextUrl = request.nextUrl;
 
@@ -25,31 +25,37 @@ export async function middleware(request: NextRequest) {
   // Create a new URL without the locale in the pathname
   const newUrl = new URL(pathnameWithoutLocale || "/", request.url);
 
-  const { data } = await supabase.auth.getUser();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   // Not authenticated
   if (
-    !data?.user &&
-    newUrl.pathname !== "/" &&
+    !session &&
+    newUrl.pathname !== "/login" &&
     !newUrl.pathname.includes("/report") &&
-    !newUrl.pathname.includes("/unsubscribe")
+    !newUrl.pathname.includes("/setup")
   ) {
     const encodedSearchParams = `${newUrl.pathname.substring(1)}${
       newUrl.search
     }`;
 
-    url.searchParams.append("return_to", encodedSearchParams);
+    const url = new URL("/login", request.url);
+
+    if (encodedSearchParams) {
+      url.searchParams.append("return_to", encodedSearchParams);
+    }
 
     return NextResponse.redirect(url);
   }
 
-  // Check if in approved user list by email
+  // If authenticated but no full_name redirect to user setup page
   if (
-    data?.user &&
-    newUrl.pathname === "/" &&
-    !(await client.get("approved"))?.includes(data?.user.email)
+    newUrl.pathname !== "/setup" &&
+    session &&
+    !session?.user?.user_metadata?.full_name
   ) {
-    return NextResponse.redirect(new URL("/closed", request.url));
+    return NextResponse.redirect(`${url.origin}/setup`);
   }
 
   const { data: mfaData } =
@@ -69,5 +75,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api).*)"],
 };

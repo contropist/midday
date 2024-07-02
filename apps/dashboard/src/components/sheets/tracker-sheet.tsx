@@ -84,6 +84,10 @@ export function TrackerSheet({ setParams, isOpen, params, project, user }) {
   };
 
   async function fetchData({ day, projectId }) {
+    if (!user?.team_id) {
+      return null;
+    }
+
     try {
       const { data, meta } = await getTrackerRecordsByRangeQuery(supabase, {
         projectId,
@@ -161,7 +165,7 @@ export function TrackerSheet({ setParams, isOpen, params, project, user }) {
             </div>
           )}
 
-          <ScrollArea className="h-full p-0">
+          <ScrollArea className="h-full p-0" hideScrollbar>
             <TrackerSelect
               date={day}
               onSelect={(day) => setParams({ day })}
@@ -175,6 +179,7 @@ export function TrackerSheet({ setParams, isOpen, params, project, user }) {
               onSelect={setParams}
               data={records}
               projectId={projectId}
+              weekStartsOn={user.week_starts_on_monday && 1}
             />
 
             <TrackerEntriesList
@@ -224,6 +229,7 @@ export function TrackerSheet({ setParams, isOpen, params, project, user }) {
           onSelect={setParams}
           data={records}
           projectId={projectId}
+          weekStartsOn={user.week_starts_on_monday && 1}
         />
 
         <TrackerEntriesList

@@ -11,9 +11,7 @@ import { VaultChart } from "@/components/charts/vault-chart";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -23,7 +21,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@midday/ui/tabs";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Open Startup | Midday",
+  title: "Open Startup",
+  description:
+    "We value transparency and aim to keep you informed about our journey every step of the way.",
 };
 
 export default async function Page() {
@@ -75,21 +75,20 @@ export default async function Page() {
             We prioritize transparency as we believe it is essential for
             fostering trust and credibility in all aspects of our operations.
             It's not just a value, it's the foundation of our relationships with
-            users and investors alike. We prioritize clear and accurate
-            information for users, empowering them to make informed decisions
-            confidently. We uphold transparency with investors, offering open
-            communication about financial performance and strategies to maintain
-            strong, mutually beneficial relationships.
+            users alike. We prioritize clear and accurate information for users,
+            empowering them to make informed decisions confidently. We uphold
+            transparency with our users, offering open communication about
+            financial performance and strategies to maintain strong, mutually
+            beneficial relationships.
           </p>
 
           <h2 className="text-2xl mb-4">Expectation</h2>
           <p className="mb-10 text-[#878787]">
             Accurately setting expectations is crucial, directly tied to our
-            dedication to transparency. This applies not just to users but also
-            to investors. We've observed many startups fall short due to
-            overpromising, highlighting the importance of aligning promises with
-            reality. By maintaining this alignment, we cultivate trust and
-            integrity, fostering a culture of accountability guided by
+            dedication to transparency. We've observed many startups fall short
+            due to overpromising, highlighting the importance of aligning
+            promises with reality. By maintaining this alignment, we cultivate
+            trust and integrity, fostering a culture of accountability guided by
             transparency.
           </p>
 

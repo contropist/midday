@@ -2,7 +2,7 @@
 
 "use client";
 
-import { cn } from "@midday/ui/utils";
+import { cn } from "@midday/ui/cn";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
@@ -91,7 +91,7 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="w-[310px] max-w-full relative flex-shrink-0 border border-border rounded-2xl bg-white dark:bg-[#121212] px-8 py-6 md:w-[310px]"
+            className="w-[310px] max-w-full relative flex-shrink-0 border border-border rounded-2xl bg-[#121212] px-8 py-6 md:w-[310px]"
             key={item.name}
           >
             <blockquote>

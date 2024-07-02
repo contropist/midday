@@ -1,4 +1,4 @@
-import { cn } from "@midday/ui/utils";
+import { cn } from "@midday/ui/cn";
 import {
   Body,
   Button,
@@ -13,7 +13,6 @@ import {
   Text,
 } from "@react-email/components";
 import { format } from "date-fns";
-import * as React from "react";
 import { Footer } from "../components/footer";
 import { Logo } from "../components/logo";
 import { getI18n } from "../locales";
@@ -25,6 +24,7 @@ type Transaction = {
   name: string;
   currency: string;
   category?: string;
+  status: "pending" | "posted";
 };
 
 interface TransactionsEmailEmailProps {
@@ -40,6 +40,7 @@ const defaultTransactions = [
     amount: -1000,
     currency: "USD",
     name: "Spotify",
+    status: "pending",
   },
   {
     id: "2",
@@ -48,6 +49,7 @@ const defaultTransactions = [
     currency: "USD",
     name: "H23504959",
     category: "income",
+    status: "pending",
   },
   {
     id: "3",
@@ -55,6 +57,7 @@ const defaultTransactions = [
     amount: -1000,
     currency: "USD",
     name: "Webflow",
+    status: "posted",
   },
   {
     id: "4",
@@ -62,6 +65,7 @@ const defaultTransactions = [
     amount: -1000,
     currency: "USD",
     name: "Netflix",
+    status: "posted",
   },
 ];
 
@@ -191,9 +195,17 @@ export const TransactionsEmail = ({
                             "!text-[#00C969]"
                         )}
                       >
-                        <Text className="text-[14px] m-0 p-0 mt-1 pb-1">
-                          {transaction.name}
-                        </Text>
+                        <div className="flex space-x-2 items-center">
+                          <Text className="text-[14px] m-0 p-0 mt-1 pb-1 line-clamp-1">
+                            {transaction.name}
+                          </Text>
+
+                          {transaction.status === "pending" && (
+                            <div className="flex space-x-1 items-center border rounded-md text-xs py-1 px-2 h-[22px] text-[#878787]">
+                              <span>Pending</span>
+                            </div>
+                          )}
+                        </div>
                       </Link>
                     </td>
                     <td align="left">

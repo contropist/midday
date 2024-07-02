@@ -8,10 +8,10 @@ exports[`Transform pending transaction 1`] = `
   "category": "travel",
   "currency": "CAD",
   "date": "2024-02-24",
-  "description": null,
+  "description": "Uber",
   "internal_id": "123_NxkDjlyk45cQoDm5PEqJuKJaw6qrj9cy89zBA",
   "method": "other",
-  "name": "Uber 063015 SF**POOL**",
+  "name": "Uber 063015 Sf Pool",
   "status": "pending",
   "team_id": "123",
 }
@@ -42,10 +42,10 @@ exports[`Transform type transfer 1`] = `
   "category": "transfer",
   "currency": "CAD",
   "date": "2024-02-24",
-  "description": null,
+  "description": "Uber",
   "internal_id": "123_NxkDjlyk45cQoDm5PEqJuKJaw6qrj9cy89zBA",
   "method": "transfer",
-  "name": "Uber 063015 SF**POOL**",
+  "name": "Uber 063015 Sf Pool",
   "status": "pending",
   "team_id": "123",
 }
@@ -62,5 +62,13 @@ exports[`Transform accounts 1`] = `
   },
   "name": "Plaid Mortgage",
   "provider": "plaid",
+  "type": "other_asset",
+}
+`;
+
+exports[`Transform account balance 1`] = `
+{
+  "amount": 2000,
+  "currency": "USD",
 }
 `;

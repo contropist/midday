@@ -1,3 +1,5 @@
+import type { AccountType } from "@midday/engine/src/utils/account";
+
 export type Providers = "teller" | "plaid" | "gocardless";
 
 export type ProviderParams = {
@@ -35,11 +37,18 @@ export type Account = {
   provider: Providers;
   institution?: Institution;
   enrollment_id?: string; // Teller
+  type: AccountType;
+};
+
+export type Balance = {
+  amount: number;
+  currency: string;
 };
 
 export type GetTransactionsRequest = {
   teamId: string;
   bankAccountId: string;
+  accountType: AccountType;
   accountId: string;
   latest?: boolean;
   accessToken?: string; // Teller & Plaid
@@ -50,6 +59,11 @@ export type GetAccountsRequest = {
   countryCode?: string; // GoCardLess
   accessToken?: string; // Teller & Plaid
   institutionId?: string; // Plaid
+};
+
+export type GetAccountBalanceRequest = {
+  accountId: string;
+  accessToken?: string; // Teller & Plaid
 };
 
 export type GetTransactionsResponse = Transaction[];

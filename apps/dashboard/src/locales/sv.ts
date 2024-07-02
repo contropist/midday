@@ -1,22 +1,4 @@
 export default {
-  categories: {
-    meals: "Mat",
-    travel: "Resa",
-    software: "Mjukvara",
-    office_supplies: "Kontorsmaterial",
-    fees: "Avgifter",
-    internet_and_telephone: "Internet och telefon",
-    rent: "Hyra",
-    equipment: "Utrustning",
-    salary: "Lön",
-    income: "Inkomst",
-    transfer: "Överföring",
-    activity: "Aktivitet",
-    other: "Annan",
-    uncategorized: "Okategoriserad",
-    taxes: "Skatter",
-    facilities_expenses: "Anläggningskostnader",
-  },
   transaction_methods: {
     card_purchase: "Kortbetalning",
     payment: "Betalning",
@@ -40,7 +22,8 @@ export default {
   },
   inbox_filter: {
     all: "Alla",
-    completed: "Slutförda",
+    todo: "Att göra",
+    done: "Slutförda",
   },
   spending_period: {
     this_month: "Den här månaden",
@@ -56,6 +39,7 @@ export default {
   chart_type: {
     profit: "Vinst",
     revenue: "Omsättning",
+    burn_rate: "Brännhastighet",
   },
   folders: {
     all: "Alla",

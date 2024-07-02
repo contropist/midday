@@ -1,7 +1,7 @@
 "use server";
 
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
 import { getUser } from "@midday/supabase/cached-queries";
 import { deleteTeamMember } from "@midday/supabase/mutations";
 import { createClient } from "@midday/supabase/server";
@@ -20,10 +20,13 @@ export const deleteTeamMemberAction = action(
       revalidatePathFunc(revalidatePath);
     }
 
-    logsnag.track({
+    const analytics = await setupAnalytics({
+      userId: user.data.id,
+      fullName: user.data.full_name,
+    });
+
+    analytics.track({
       event: LogEvents.DeleteTeamMember.name,
-      icon: LogEvents.DeleteTeamMember.icon,
-      user_id: user.data.id,
       channel: LogEvents.DeleteTeamMember.channel,
     });
 

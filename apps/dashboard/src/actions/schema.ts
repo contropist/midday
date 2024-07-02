@@ -4,14 +4,25 @@ export const updateUserSchema = z.object({
   full_name: z.string().min(2).max(32).optional(),
   avatar_url: z.string().url().optional(),
   locale: z.string().optional(),
+  week_starts_on_monday: z.boolean().optional(),
 });
 
 export type UpdateUserFormValues = z.infer<typeof updateUserSchema>;
 
+export const trackingConsentSchema = z.boolean();
+
+export const sendSupportSchema = z.object({
+  subject: z.string(),
+  priority: z.string(),
+  type: z.string(),
+  message: z.string(),
+});
+
 export const updateTeamSchema = z.object({
   name: z.string().min(2).max(32).optional(),
   email: z.string().email().optional(),
-  inbox_email: z.string().email().optional(),
+  inbox_email: z.string().email().optional().nullable(),
+  inbox_forwarding: z.boolean().optional().nullable(),
   logo_url: z.string().url().optional(),
   revalidatePath: z.string().optional(),
 });
@@ -25,11 +36,6 @@ export const subscribeSchema = z.object({
 
 export const deleteBankAccountSchema = z.object({
   id: z.string().uuid(),
-});
-
-export const approveUserSchema = z.object({
-  email: z.string().email(),
-  fullName: z.string(),
 });
 
 export const updateBankAccountSchema = z.object({
@@ -57,7 +63,8 @@ export const changeSpendingPeriodSchema = z.object({
   to: z.string().datetime(),
 });
 
-export const changeChartTypeSchema = z.enum(["profit", "revenue"]);
+export const changeChartCurrencySchema = z.string();
+export const changeChartTypeSchema = z.enum(["profit", "revenue", "burn_rate"]);
 export const changeChartPeriodSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
@@ -112,11 +119,6 @@ export const shareFileSchema = z.object({
   expireIn: z.number(),
 });
 
-export const voteSchema = z.object({
-  revalidatePath: z.string(),
-  id: z.string(),
-});
-
 export const connectBankAccountSchema = z.object({
   accessToken: z.string().nullable().optional(), // Teller
   enrollmentId: z.string().nullable().optional(), // Teller
@@ -130,6 +132,13 @@ export const connectBankAccountSchema = z.object({
       institution_id: z.string(),
       enabled: z.boolean(),
       logo_url: z.string().nullable().optional(),
+      type: z.enum([
+        "credit",
+        "depository",
+        "other_asset",
+        "loan",
+        "other_liability",
+      ]),
     })
   ),
 });
@@ -139,15 +148,22 @@ export const sendFeedbackSchema = z.object({
 });
 
 export const updateTransactionSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   note: z.string().optional(),
-  category: z.string().optional(),
-  assigned_id: z.string().optional(),
-  status: z.enum(["deleted", "excluded", "posted"]).optional(),
+  category_slug: z.string().optional(),
+  assigned_id: z.string().uuid().optional(),
+  status: z.enum(["deleted", "excluded", "posted", "completed"]).optional(),
 });
+
+export type UpdateTransactionValues = z.infer<typeof updateTransactionSchema>;
 
 export const deleteTransactionSchema = z.object({
   ids: z.array(z.string()),
+});
+
+export const deleteCategoriesSchema = z.object({
+  ids: z.array(z.string()),
+  revalidatePath: z.string(),
 });
 
 export const bulkUpdateTransactionsSchema = z.object({
@@ -172,7 +188,9 @@ export const changeTeamSchema = z.object({
 });
 
 export const createTeamSchema = z.object({
-  name: z.string(),
+  name: z.string().min(2, {
+    message: "Team name must be at least 2 characters.",
+  }),
   redirectTo: z.string().optional(),
 });
 
@@ -215,6 +233,29 @@ export type InviteTeamMembersFormValues = z.infer<
   typeof inviteTeamMembersSchema
 >;
 
+export const createCategoriesSchema = z.object({
+  categories: z.array(
+    z.object({
+      name: z.string().optional(),
+      description: z.string().optional(),
+      color: z.string().optional(),
+      vat: z.string().optional(),
+    })
+  ),
+});
+
+export type CreateCategoriesFormValues = z.infer<typeof createCategoriesSchema>;
+
+export const updateCategorySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  color: z.string(),
+  description: z.string().optional().nullable(),
+  vat: z.string().optional().nullable(),
+});
+
+export type UpdateCategoriesFormValues = z.infer<typeof updateCategorySchema>;
+
 export const deleteInviteSchema = z.object({
   id: z.string(),
   revalidatePath: z.string().optional(),
@@ -230,17 +271,13 @@ export const declineInviteSchema = z.object({
   revalidatePath: z.string().optional(),
 });
 
-export const inboxFilter = z.enum(["all", "completed", "archived", "deleted"]);
+export const inboxFilterSchema = z.enum(["done", "todo", "all"]);
 
 export const updateInboxSchema = z.object({
   id: z.string(),
-  read: z.boolean().optional(),
-  trash: z.boolean().optional(),
-  archived: z.boolean().optional(),
+  status: z.enum(["deleted", "pending"]).optional(),
   transaction_id: z.string().nullable().optional(),
 });
-
-export const changeInboxFilterSchema = inboxFilter.optional();
 
 export const createProjectSchema = z.object({
   name: z.string().min(1),
@@ -275,6 +312,7 @@ export const createReportSchema = z.object({
   baseUrl: z.string().url(),
   from: z.string(),
   to: z.string(),
+  currency: z.string(),
   type: changeChartTypeSchema,
   expiresAt: z.string().datetime().optional(),
 });
@@ -302,6 +340,7 @@ export const manualSyncTransactionsSchema = z.object({
 
 export const createEndUserAgreementSchema = z.object({
   institutionId: z.string(),
+  countryCode: z.string(),
   transactionTotalDays: z.number(),
   isDesktop: z.boolean().optional(),
 });
@@ -309,3 +348,67 @@ export const createEndUserAgreementSchema = z.object({
 export const importTransactionsSchema = z.object({
   filePath: z.array(z.string()),
 });
+
+export const setupUserSchema = z.object({
+  full_name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  team_name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+});
+
+export const verifyOtpSchema = z.object({
+  type: z.enum(["phone", "email"]),
+  token: z.string(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+});
+
+export const searchSchema = z.object({
+  query: z.string().min(1),
+  type: z.enum(["inbox", "categories"]),
+  limit: z.number().optional(),
+});
+
+export const inboxOrder = z.boolean();
+
+export const getVatRateSchema = z.object({
+  name: z.string().min(2),
+});
+
+export const createBankAccountSchema = z.object({
+  name: z.string(),
+  currency: z.string().optional(),
+});
+
+export const createTransactionsSchema = z.object({
+  accountId: z.string().uuid(),
+  currency: z.string(),
+  transactions: z.array(
+    z.object({
+      internal_id: z.string(),
+      bank_account_id: z.string().uuid(),
+      date: z.coerce.date(),
+      name: z.string(),
+      amount: z.number(),
+      currency: z.string(),
+      team_id: z.string(),
+      status: z.enum(["posted"]),
+      method: z.enum(["other"]),
+      manual: z.boolean(),
+      category_slug: z.enum(["income"]).nullable(),
+    })
+  ),
+});
+
+export type CreateTransactionsFormValues = z.infer<
+  typeof createTransactionsSchema
+>;
+
+export const assistantSettingsSchema = z.object({
+  enabled: z.boolean().optional(),
+  provider: z.enum(["openai", "mistralai"]).optional(),
+});
+
+export const requestAccessSchema = z.void();

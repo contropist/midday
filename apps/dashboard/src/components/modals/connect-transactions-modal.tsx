@@ -1,8 +1,9 @@
 "use client";
 
-import { useLogSnag } from "@midday/events/client";
+import { track } from "@midday/events/client";
 import { LogEvents } from "@midday/events/events";
 import { Card, CardDescription, CardHeader, CardTitle } from "@midday/ui/card";
+import { cn } from "@midday/ui/cn";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,6 @@ import {
   DialogTitle,
 } from "@midday/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@midday/ui/tabs";
-import { cn } from "@midday/ui/utils";
 import Image from "next/image";
 import { parseAsString, parseAsStringEnum, useQueryStates } from "nuqs";
 import CsvLogoDark from "public/assets/csv-dark.png";
@@ -27,28 +27,21 @@ import {
   useTellerConnect,
 } from "teller-connect-react";
 
-export function ConnectTransactionsModal({ isEU }) {
-  const { track } = useLogSnag();
+type Props = {
+  isEU: boolean;
+};
+
+export function ConnectTransactionsModal({ isEU }: Props) {
   const [token, setToken] = useState();
 
-  const [params, setParams] = useQueryStates(
-    {
-      step: parseAsStringEnum([
-        "connect",
-        "account",
-        "gocardless",
-        "import-csv",
-      ]),
-      ref: parseAsString,
-      token: parseAsString,
-      enrollment_id: parseAsString,
-      institution_id: parseAsString,
-      provider: parseAsStringEnum(["teller", "plaid", "gocardless"]),
-    },
-    {
-      shallow: true,
-    }
-  );
+  const [params, setParams] = useQueryStates({
+    step: parseAsStringEnum(["connect", "account", "gocardless", "import-csv"]),
+    ref: parseAsString,
+    token: parseAsString,
+    enrollment_id: parseAsString,
+    institution_id: parseAsString,
+    provider: parseAsStringEnum(["teller", "plaid", "gocardless"]),
+  });
 
   const isOpen = params.step === "connect";
 
@@ -81,11 +74,8 @@ export function ConnectTransactionsModal({ isEU }) {
 
       track({
         event: LogEvents.ConnectBankAuthorized.name,
-        icon: LogEvents.ConnectBankAuthorized.icon,
         channel: LogEvents.ConnectBankAuthorized.channel,
-        tags: {
-          provider: "teller",
-        },
+        provider: "teller",
       });
     },
     onExit: () => {
@@ -93,11 +83,8 @@ export function ConnectTransactionsModal({ isEU }) {
 
       track({
         event: LogEvents.ConnectBankCanceled.name,
-        icon: LogEvents.ConnectBankCanceled.icon,
         channel: LogEvents.ConnectBankCanceled.channel,
-        tags: {
-          provider: "teller",
-        },
+        provider: "teller",
       });
 
       setParams({ step: "connect" });
@@ -130,11 +117,8 @@ export function ConnectTransactionsModal({ isEU }) {
 
       track({
         event: LogEvents.ConnectBankAuthorized.name,
-        icon: LogEvents.ConnectBankAuthorized.icon,
         channel: LogEvents.ConnectBankAuthorized.channel,
-        tags: {
-          provider: "plaid",
-        },
+        provider: "plaid",
       });
     },
     onExit: () => {
@@ -142,11 +126,8 @@ export function ConnectTransactionsModal({ isEU }) {
 
       track({
         event: LogEvents.ConnectBankCanceled.name,
-        icon: LogEvents.ConnectBankCanceled.icon,
         channel: LogEvents.ConnectBankCanceled.channel,
-        tags: {
-          provider: "plaid",
-        },
+        provider: "plaid",
       });
     },
   });
@@ -161,11 +142,8 @@ export function ConnectTransactionsModal({ isEU }) {
       onClick: () => {
         track({
           event: LogEvents.ConnectBankProvider.name,
-          icon: LogEvents.ConnectBankProvider.icon,
           channel: LogEvents.ConnectBankProvider.channel,
-          tags: {
-            provider: "teller",
-          },
+          provider: "teller",
         });
 
         openTeller();
@@ -181,11 +159,8 @@ export function ConnectTransactionsModal({ isEU }) {
       onClick: () => {
         track({
           event: LogEvents.ConnectBankProvider.name,
-          icon: LogEvents.ConnectBankProvider.icon,
           channel: LogEvents.ConnectBankProvider.channel,
-          tags: {
-            provider: "plaid",
-          },
+          provider: "plaid",
         });
 
         openPlaid();
@@ -202,11 +177,8 @@ export function ConnectTransactionsModal({ isEU }) {
       onClick: () => {
         track({
           event: LogEvents.ConnectBankProvider.name,
-          icon: LogEvents.ConnectBankProvider.icon,
           channel: LogEvents.ConnectBankProvider.channel,
-          tags: {
-            provider: "gocardless",
-          },
+          provider: "gocardless",
         });
 
         setParams({ step: "gocardless" });
@@ -232,7 +204,6 @@ export function ConnectTransactionsModal({ isEU }) {
         "Import transactions using a CSV file, you can also use this for backfilling.",
       logo: CsvLogo,
       logoDark: CsvLogoDark,
-      disabled: true,
       onClick: () => {
         setParams({ step: "import-csv" });
       },

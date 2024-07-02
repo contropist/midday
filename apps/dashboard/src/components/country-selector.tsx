@@ -2,6 +2,7 @@
 
 import countries from "@midday/location/src/country-flag";
 import { Button } from "@midday/ui/button";
+import { cn } from "@midday/ui/cn";
 import {
   Command,
   CommandEmpty,
@@ -14,7 +15,6 @@ import {
   PopoverContentWithoutPortal,
   PopoverTrigger,
 } from "@midday/ui/popover";
-import { cn } from "@midday/ui/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import * as React from "react";
 
@@ -48,7 +48,7 @@ export function CountrySelector({ defaultValue, onSelect }) {
       </PopoverTrigger>
       <PopoverContentWithoutPortal className="w-[225px] p-0">
         <Command>
-          <CommandInput placeholder="Search country..." className="h-9" />
+          <CommandInput placeholder="Search country..." className="h-9 px-2" />
           <CommandEmpty>No country found.</CommandEmpty>
           <CommandGroup className="overflow-y-auto max-h-[230px] pt-2">
             {Object.values(countries).map((country) => (

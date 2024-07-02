@@ -2,9 +2,8 @@
 
 import { Command as CommandPrimitive } from "cmdk";
 import { Loader2 } from "lucide-react";
-import * as React from "react";
 import { useCallback, useRef, useState } from "react";
-import { cn } from "../utils/cn";
+import { cn } from "../utils";
 import {
   CommandGroup,
   CommandInput,
@@ -15,7 +14,7 @@ import { Icons } from "./icons";
 
 export type Option = Record<"id" | "name", string> & Record<string, string>;
 
-type AutoCompleteProps = {
+type ComboboxProps = {
   options: Option[];
   emptyMessage: string;
   value?: Option;
@@ -28,6 +27,9 @@ type AutoCompleteProps = {
   placeholder?: string;
   className?: string;
   classNameList?: string;
+  autoFocus?: boolean;
+  showIcon?: boolean;
+  CreateComponent?: React.ReactElement<{ value: string }>;
 };
 
 export const Combobox = ({
@@ -41,8 +43,11 @@ export const Combobox = ({
   className,
   classNameList,
   isLoading = false,
+  showIcon = true,
+  autoFocus,
   onValueChange,
-}: AutoCompleteProps) => {
+  CreateComponent,
+}: ComboboxProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setOpen] = useState(false);
   const [selected, setSelected] = useState<Option | undefined>(value as Option);
@@ -95,7 +100,9 @@ export const Combobox = ({
   return (
     <CommandPrimitive className="w-full">
       <div className="flex items-center w-full relative">
-        <Icons.Search className="w-[22px] h-[22px] absolute left-4 pointer-events-none" />
+        {showIcon && (
+          <Icons.Search className="w-[18px] h-[18px] absolute left-4 pointer-events-none" />
+        )}
 
         <CommandInput
           ref={inputRef}
@@ -106,15 +113,16 @@ export const Combobox = ({
           placeholder={placeholder}
           disabled={disabled}
           className={className}
+          autoFocus={autoFocus}
         />
 
         {isLoading && (
-          <Loader2 className="w-[20px] h-[20px] absolute right-4 animate-spin text-dark-gray" />
+          <Loader2 className="w-[16px] h-[16px] absolute right-2 animate-spin text-dark-gray" />
         )}
 
-        {!isLoading && selected && (
+        {!isLoading && selected && onRemove && (
           <Icons.Close
-            className="w-[20px] h-[20px] absolute right-4"
+            className="w-[18px] h-[18px] absolute right-2"
             onClick={handleOnRemove}
           />
         )}
@@ -128,11 +136,11 @@ export const Combobox = ({
           {inputValue?.length > 0 && (
             <CommandGroup
               className={cn(
-                "bg-background absolute z-10 w-full max-h-[250px] overflow-auto py-2 border rounded-xl",
+                "bg-background absolute z-10 w-full max-h-[250px] overflow-auto py-2 border px-2",
                 classNameList
               )}
             >
-              {options.map(({ component: Component, ...option }) => {
+              {options?.map(({ component: Component, ...option }) => {
                 return (
                   <CommandItem
                     key={option.id}
@@ -142,26 +150,33 @@ export const Combobox = ({
                       event.stopPropagation();
                     }}
                     onSelect={() => handleSelectOption(option)}
-                    className="flex items-center gap-2 w-full"
+                    className="flex items-center gap-2 w-full px-2"
                   >
                     {Component ? <Component /> : option.name}
                   </CommandItem>
                 );
               })}
 
-              {onCreate && (
-                <CommandItem
-                  key={inputValue}
-                  value={inputValue}
-                  onSelect={() => onCreate(inputValue)}
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                  }}
-                >
-                  {`Create "${inputValue}"`}
-                </CommandItem>
-              )}
+              {onCreate &&
+                !options?.find(
+                  (o) => o.name.toLowerCase() === inputValue.toLowerCase()
+                ) && (
+                  <CommandItem
+                    key={inputValue}
+                    value={inputValue}
+                    onSelect={() => onCreate(inputValue)}
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                  >
+                    {CreateComponent ? (
+                      <CreateComponent value={inputValue} />
+                    ) : (
+                      `Create "${inputValue}"`
+                    )}
+                  </CommandItem>
+                )}
             </CommandGroup>
           )}
         </CommandList>

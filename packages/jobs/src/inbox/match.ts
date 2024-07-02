@@ -13,11 +13,11 @@ import { client, supabase } from "../client";
 import { Events, Jobs } from "../constants";
 
 client.defineJob({
-  id: Jobs.MATCH_INBOX,
+  id: Jobs.INBOX_MATCH,
   name: "Inbox - Match",
   version: "0.0.1",
   trigger: eventTrigger({
-    name: Events.MATCH_INBOX,
+    name: Events.INBOX_MATCH,
     schema: z.object({
       inboxId: z.string(),
       amount: z.number(),
@@ -31,10 +31,8 @@ client.defineJob({
     // NOTE: All inbox reciepts and invoices amount are
     // saved with positive values while transactions have signed values
     const { data: transactionData } = await io.supabase.client
-      .from("decrypted_transactions")
-      .select(
-        "id, name:decrypted_name, team_id, attachments:transaction_attachments(*)"
-      )
+      .from("transactions")
+      .select("id, name, team_id, attachments:transaction_attachments(*)")
       .eq("amount", -Math.abs(payload.amount))
       .eq("team_id", payload.teamId)
       .filter("transaction_attachments.id", "is", null)
@@ -56,7 +54,7 @@ client.defineJob({
         .insert({
           type: inboxData.content_type,
           path: inboxData.file_path,
-          transaction_id: transaction.id,
+          transaction_id: transaction?.id,
           team_id: inboxData.team_id,
           size: inboxData.size,
           name: inboxData.file_name,
@@ -69,10 +67,14 @@ client.defineJob({
         {
           id: inboxData.id,
           attachment_id: attachmentData.id,
-          transaction_id: transaction.id,
-          read: true,
+          transaction_id: transaction?.id,
+          teamId: payload.teamId,
         }
       );
+
+      if (!updatedInboxData) {
+        throw Error("Nothing updated");
+      }
 
       revalidateTag(`transactions_${inboxData.team_id}`);
 
@@ -84,14 +86,14 @@ client.defineJob({
         .eq("team_id", inboxData.team_id);
 
       const notificationEvents = usersData?.map(({ user }) => {
-        const { t } = getI18n({ locale: user.locale });
+        const { t } = getI18n({ locale: user?.locale });
 
         return {
           name: TriggerEvents.MatchNewInApp,
           payload: {
             recordId: updatedInboxData.transaction_id,
             description: t("notifications.match", {
-              transactionName: transaction.name,
+              transactionName: transaction?.name,
               fileName: updatedInboxData.file_name,
             }),
             type: NotificationTypes.Match,
@@ -106,7 +108,9 @@ client.defineJob({
         };
       });
 
-      triggerBulk(notificationEvents?.flat());
+      if (notificationEvents?.length) {
+        triggerBulk(notificationEvents?.flat());
+      }
     }
   },
 });

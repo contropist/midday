@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@midday/ui/form";
+import { Icons } from "@midday/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@midday/ui/popover";
 import { useToast } from "@midday/ui/use-toast";
 import { format } from "date-fns";
@@ -34,11 +35,20 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CopyInput } from "./copy-input";
 
-const FormSchema = z.object({
+const formSchema = z.object({
   expireAt: z.date().optional(),
 });
 
-export function ShareReport({ defaultValue, type }) {
+type Props = {
+  defaultValue: {
+    from: string;
+    to: string;
+  };
+  type: "profit" | "revenue";
+  currency: string;
+};
+
+export function ShareReport({ defaultValue, type, currency }: Props) {
   const [isOpen, setOpen] = useState(false);
   const { toast, dismiss } = useToast();
 
@@ -46,17 +56,18 @@ export function ShareReport({ defaultValue, type }) {
   const from = searchParams?.get("from") ?? defaultValue.from;
   const to = searchParams?.get("to") ?? defaultValue.to;
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  function onSubmit(data: z.infer<typeof formSchema>) {
     createReport.execute({
       baseUrl: window.location.origin,
       from,
       to,
       type,
       expiresAt: data.expireAt && new Date(data.expireAt).toISOString(),
+      currency,
     });
   }
 
@@ -93,8 +104,8 @@ export function ShareReport({ defaultValue, type }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      <Button variant="outline" onClick={() => setOpen(true)}>
-        Share
+      <Button variant="outline" onClick={() => setOpen(true)} size="icon">
+        <Icons.Share size={16} />
       </Button>
 
       <DialogContent className="sm:max-w-[425px]">

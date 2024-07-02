@@ -1,8 +1,27 @@
+import "server-only";
+
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import { createClient } from "../client/server";
 import {
+  type GetBurnRateQueryParams,
+  type GetCategoriesParams,
+  type GetCurrentBurnRateQueryParams,
+  type GetMetricsParams,
+  type GetRunwayQueryParams,
+  type GetSpendingParams,
+  type GetTeamBankAccountsParams,
+  type GetTrackerProjectsQueryParams,
+  type GetTrackerRecordsByRangeParams,
+  type GetTransactionsParams,
+  type GetVaultParams,
+  getBankAccountsCurrenciesQuery,
   getBankConnectionsByTeamIdQuery,
+  getBurnRateQuery,
+  getCategoriesQuery,
+  getCurrentBurnRateQuery,
   getMetricsQuery,
+  getRunwayQuery,
   getSpendingQuery,
   getTeamBankAccountsQuery,
   getTeamInvitesQuery,
@@ -17,7 +36,9 @@ import {
   getVaultQuery,
 } from "../queries";
 
-export const getTransactions = async (params) => {
+export const getTransactions = async (
+  params: Omit<GetTransactionsParams, "teamId">
+) => {
   const supabase = createClient();
   const user = await getUser();
   const teamId = user?.data?.team_id;
@@ -38,17 +59,23 @@ export const getTransactions = async (params) => {
   )(params);
 };
 
-export const getUser = async () => {
+export const getSession = cache(async () => {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  const userId = user?.id;
+  return supabase.auth.getSession();
+});
+
+export const getUser = async () => {
+  const {
+    data: { session },
+  } = await getSession();
+  const userId = session?.user?.id;
 
   if (!userId) {
     return null;
   }
+
+  const supabase = createClient();
 
   return unstable_cache(
     async () => {
@@ -102,7 +129,9 @@ export const getBankConnectionsByTeamId = async () => {
   )(teamId);
 };
 
-export const getTeamBankAccounts = async () => {
+export const getTeamBankAccounts = async (
+  params?: Omit<GetTeamBankAccountsParams, "teamId">
+) => {
   const supabase = createClient();
 
   const user = await getUser();
@@ -114,14 +143,14 @@ export const getTeamBankAccounts = async () => {
 
   return unstable_cache(
     async () => {
-      return getTeamBankAccountsQuery(supabase, teamId);
+      return getTeamBankAccountsQuery(supabase, { ...params, teamId });
     },
     ["bank_accounts", teamId],
     {
       tags: [`bank_accounts_${teamId}`],
       revalidate: 180,
     }
-  )(teamId);
+  )(params);
 };
 
 export const getTeamMembers = async () => {
@@ -146,7 +175,9 @@ export const getTeamMembers = async () => {
   )(teamId);
 };
 
-export const getSpending = async (params) => {
+export const getSpending = async (
+  params: Omit<GetSpendingParams, "teamId">
+) => {
   const supabase = createClient();
   const user = await getUser();
   const teamId = user?.data?.team_id;
@@ -162,12 +193,36 @@ export const getSpending = async (params) => {
     ["spending", teamId],
     {
       tags: [`spending_${teamId}`],
-      revalidate: 180,
+      revalidate: 3600,
     }
   )(params);
 };
 
-export const getMetrics = async (params) => {
+export const getBankAccountsCurrencies = async () => {
+  const supabase = createClient();
+
+  const user = await getUser();
+  const teamId = user?.data?.team_id;
+
+  if (!teamId) {
+    return null;
+  }
+
+  return unstable_cache(
+    async () => {
+      return getBankAccountsCurrenciesQuery(supabase, {
+        teamId,
+      });
+    },
+    ["bank_accounts_currencies", teamId],
+    {
+      tags: [`bank_accounts_currencies_${teamId}`],
+      revalidate: 180,
+    }
+  )();
+};
+
+export const getMetrics = async (params: Omit<GetMetricsParams, "teamId">) => {
   const supabase = createClient();
 
   const user = await getUser();
@@ -184,12 +239,12 @@ export const getMetrics = async (params) => {
     ["metrics", teamId],
     {
       tags: [`metrics_${teamId}`],
-      revalidate: 180,
+      revalidate: 3600,
     }
   )(params);
 };
 
-export const getVault = async (params) => {
+export const getVault = async (params: GetVaultParams) => {
   const supabase = createClient();
 
   const user = await getUser();
@@ -273,7 +328,9 @@ export const getUserInvites = async () => {
   )();
 };
 
-export const getTrackerProjects = async (params) => {
+export const getTrackerProjects = async (
+  params: GetTrackerProjectsQueryParams
+) => {
   const supabase = createClient();
   const user = await getUser();
   const teamId = user?.data?.team_id;
@@ -290,7 +347,9 @@ export const getTrackerProjects = async (params) => {
   )(params);
 };
 
-export const getTrackerRecordsByRange = async (params) => {
+export const getTrackerRecordsByRange = async (
+  params: GetTrackerRecordsByRangeParams
+) => {
   const supabase = createClient();
   const user = await getUser();
   const teamId = user?.data?.team_id;
@@ -303,6 +362,82 @@ export const getTrackerRecordsByRange = async (params) => {
     {
       tags: [`tracker_entries_${teamId}`],
       revalidate: 180,
+    }
+  )(params);
+};
+
+export const getBurnRate = async (
+  params: Omit<GetBurnRateQueryParams, "teamId">
+) => {
+  const supabase = createClient();
+  const user = await getUser();
+  const teamId = user?.data?.team_id;
+
+  return unstable_cache(
+    async () => {
+      return getBurnRateQuery(supabase, { ...params, teamId });
+    },
+    ["burn_rate", teamId],
+    {
+      tags: [`burn_rate_${teamId}`],
+      revalidate: 3600,
+    }
+  )(params);
+};
+
+export const getCurrentBurnRate = async (
+  params: Omit<GetCurrentBurnRateQueryParams, "teamId">
+) => {
+  const supabase = createClient();
+  const user = await getUser();
+  const teamId = user?.data?.team_id;
+
+  return unstable_cache(
+    async () => {
+      return getCurrentBurnRateQuery(supabase, { ...params, teamId });
+    },
+    ["current_burn_rate", teamId],
+    {
+      tags: [`current_burn_rate_${teamId}`],
+      revalidate: 3600,
+    }
+  )(params);
+};
+
+export const getRunway = async (
+  params: Omit<GetRunwayQueryParams, "teamId">
+) => {
+  const supabase = createClient();
+  const user = await getUser();
+  const teamId = user?.data?.team_id;
+
+  return unstable_cache(
+    async () => {
+      return getRunwayQuery(supabase, { ...params, teamId });
+    },
+    ["runway", teamId],
+    {
+      tags: [`runway_${teamId}`],
+      revalidate: 3600,
+    }
+  )(params);
+};
+
+export const getCategories = async (
+  params?: Omit<GetCategoriesParams, "teamId">
+) => {
+  const supabase = createClient();
+  const user = await getUser();
+  const teamId = user?.data?.team_id;
+
+  return unstable_cache(
+    async () => {
+      return getCategoriesQuery(supabase, { ...params, teamId });
+    },
+    ["transaction_categories", teamId],
+    {
+      tags: [`transaction_categories_${teamId}`],
+      revalidate: 3600,
     }
   )(params);
 };

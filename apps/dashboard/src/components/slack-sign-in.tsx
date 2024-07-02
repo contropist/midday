@@ -15,7 +15,7 @@ export function SlackSignIn() {
     setLoading(true);
 
     if (isDesktopApp()) {
-      const redirectTo = new URL("/api/auth/callback", location.origin);
+      const redirectTo = new URL("/api/auth/callback", window.location.origin);
 
       redirectTo.searchParams.append("provider", "slack");
       redirectTo.searchParams.append("client", "desktop");
@@ -33,7 +33,7 @@ export function SlackSignIn() {
       await supabase.auth.signInWithOAuth({
         provider: "slack",
         options: {
-          redirectTo: `${location.origin}/api/auth/callback?provider=slack`,
+          redirectTo: `${window.location.origin}/api/auth/callback?provider=slack`,
         },
       });
     }
@@ -42,7 +42,7 @@ export function SlackSignIn() {
   return (
     <Button
       onClick={handleSignIn}
-      className="active:scale-[0.98] rounded-xl bg-primary px-6 py-4 text-secondary font-medium flex space-x-2 h-[40px] w-full"
+      className="active:scale-[0.98] bg-primary px-6 py-4 text-secondary font-medium flex space-x-2 h-[40px] w-full"
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

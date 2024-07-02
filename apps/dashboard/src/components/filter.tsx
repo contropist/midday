@@ -3,6 +3,7 @@
 import { useI18n } from "@/locales/client";
 import { Button } from "@midday/ui/button";
 import { Checkbox } from "@midday/ui/checkbox";
+import { cn } from "@midday/ui/cn";
 import { Input } from "@midday/ui/input";
 import { Label } from "@midday/ui/label";
 import { MonthRangePicker } from "@midday/ui/month-range-picker";
@@ -15,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@midday/ui/select";
-import { cn } from "@midday/ui/utils";
 import * as Tabs from "@radix-ui/react-tabs";
 import { format } from "date-fns";
 import { ChevronDown, ChevronRight, Trash2, X } from "lucide-react";
@@ -34,9 +34,10 @@ type SelectedOption = {
   value: string;
 };
 
-type Option = {
+type Option<TVal> = {
   id: string;
   label?: string;
+  renderLabel?: (value: TVal) => React.ReactNode;
   translationKey?: string;
   from?: Date;
   to?: Date;
@@ -232,7 +233,8 @@ export function Filter({ sections }: Props) {
 
         if (filter.length) {
           const option = section?.options?.find((o) => o.id === filter.at(0));
-          return option?.translationKey
+
+          return option?.renderLabel?.(option) ?? option?.translationKey
             ? t(option?.translationKey)
             : option?.label;
         }
@@ -276,7 +278,7 @@ export function Filter({ sections }: Props) {
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[650px] rounded-xl mt-2.5 p-0 overflow-hidden"
+          className="w-[650px] mt-2.5 p-0 overflow-hidden"
           align="end"
         >
           <Tabs.Root
@@ -293,7 +295,7 @@ export function Filter({ sections }: Props) {
                   <Tabs.TabsTrigger value={id} asChild key={id}>
                     <Button
                       className={cn(
-                        "rounded-md w-[190px] items-center justify-start relative mb-1.5 group",
+                        "w-[190px] items-center justify-start relative mb-1.5 group",
                         isActive && "bg-secondary"
                       )}
                       variant="ghost"

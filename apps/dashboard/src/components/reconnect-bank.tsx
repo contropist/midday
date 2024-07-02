@@ -1,9 +1,9 @@
 import { getBankConnectionsByTeamId } from "@midday/supabase/cached-queries";
 import { Avatar, AvatarImage } from "@midday/ui/avatar";
 import { Button } from "@midday/ui/button";
+import { cn } from "@midday/ui/cn";
 import { Icons } from "@midday/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@midday/ui/popover";
-import { cn } from "@midday/ui/utils";
 import { differenceInDays, formatDistanceToNow } from "date-fns";
 import { ReconnectButton } from "./reconnect-button";
 
@@ -38,7 +38,7 @@ export async function ReconnectBank() {
         <Button
           variant="outline"
           size="icon"
-          className="rounded-full w-8 h-8 flex items-center"
+          className="rounded-full w-8 h-8 items-center hidden md:flex"
         >
           <Icons.Refresh
             size={16}
@@ -49,7 +49,7 @@ export async function ReconnectBank() {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="rounded-xl w-[350px] mr-7" sideOffset={10}>
+      <PopoverContent className="w-[350px] mr-7" sideOffset={10}>
         <div>
           {bankConnections?.data?.map((bank) => {
             const expiresInDays = differenceInDays(
@@ -85,10 +85,7 @@ export async function ReconnectBank() {
                 </div>
 
                 <div className="flex space-x-2">
-                  <ReconnectButton
-                    id={bank.id}
-                    institutionId={bank.institution_id}
-                  />
+                  <ReconnectButton institutionId={bank.institution_id} />
                 </div>
               </div>
             );

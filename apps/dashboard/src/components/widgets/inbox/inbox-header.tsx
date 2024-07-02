@@ -11,9 +11,14 @@ import {
 import { Icons } from "@midday/ui/icons";
 import { useOptimisticAction } from "next-safe-action/hooks";
 
-const options = ["all", "completed"];
+const options = ["all", "todo", "done"];
 
-export function InboxHeader({ filter, disabled }) {
+type Props = {
+  filter: string;
+  disabled: boolean;
+};
+
+export function InboxHeader({ filter, disabled }: Props) {
   const t = useI18n();
   const { execute, optimisticData } = useOptimisticAction(
     changeInboxFilterAction,

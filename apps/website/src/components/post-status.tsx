@@ -1,13 +1,7 @@
 export function PostStatus({ status }) {
-  switch (status) {
-    case "Update":
-      return (
-        <div className="border border-[#DFB31D] rounded-md px-2 py-1 inline-block text-[#DFB31D] text-[10px] font-medium mb-4">
-          Updates
-        </div>
-      );
-
-    default:
-      return null;
-  }
+  return (
+    <div className="border rounded-full font-mono px-3 py-1.5 inline-block text-[11px] mb-4 text-[#878787]">
+      {status}
+    </div>
+  );
 }

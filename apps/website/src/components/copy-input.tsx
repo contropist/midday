@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@midday/ui/cn";
 import { Icons } from "@midday/ui/icons";
-import { cn } from "@midday/ui/utils";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -28,7 +28,7 @@ export function CopyInput({ value, className }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center relative w-full rounded-md border border-border py-2 px-4",
+        "flex items-center relative w-full border border-border py-2 px-4",
         className
       )}
     >

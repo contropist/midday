@@ -18,10 +18,11 @@ client.defineJob({
     const { data: accountsData, error: accountsError } = await supabase
       .from("bank_accounts")
       .select(
-        "id, team_id, account_id, bank_connection:bank_connection_id(provider, access_token)"
+        "id, team_id, account_id, type, bank_connection:bank_connection_id(provider, access_token)"
       )
       .eq("team_id", teamId)
-      .eq("enabled", true);
+      .eq("enabled", true)
+      .eq("manual", false);
 
     if (accountsError) {
       await io.logger.error("Accounts Error", accountsError);
@@ -32,13 +33,26 @@ client.defineJob({
         provider: account.bank_connection.provider,
       });
 
-      // Update bank account last_accessed
-      await io.supabase.client
-        .from("bank_accounts")
-        .update({
-          last_accessed: new Date().toISOString(),
-        })
-        .eq("id", account.id);
+      try {
+        const balance = await provider.getAccountBalance({
+          accountId: account.account_id,
+          accessToken: account.bank_connection?.access_token,
+        });
+
+        // Update bank account
+        await io.supabase.client
+          .from("bank_accounts")
+          .update({
+            balance: balance?.amount,
+            last_accessed: new Date().toISOString(),
+          })
+          .eq("id", account.id);
+      } catch (error) {
+        await io.logger.error(
+          `Update Account Balance Error. Provider: ${account.bank_connection.provider} Account id: ${account.account_id}`,
+          error
+        );
+      }
 
       return provider.getTransactions({
         teamId: account.team_id,
@@ -46,15 +60,17 @@ client.defineJob({
         accessToken: account.bank_connection?.access_token,
         bankAccountId: account.id,
         latest: true,
+        accountType: account.type,
       });
     });
 
     try {
       if (promises) {
         const result = await Promise.all(promises);
-        const transactions = result?.flat();
-
-        await io.logger.debug("Transactions", transactions);
+        const transactions = result.flat()?.map(({ category, ...rest }) => ({
+          ...rest,
+          category_slug: category,
+        }));
 
         if (!transactions?.length) {
           return null;
@@ -62,12 +78,12 @@ client.defineJob({
 
         const { error: transactionsError, data: transactionsData } =
           await supabase
-            .from("decrypted_transactions")
+            .from("transactions")
             .upsert(transactions, {
               onConflict: "internal_id",
               ignoreDuplicates: true,
             })
-            .select("*, name:decrypted_name");
+            .select("*");
 
         if (transactionsError) {
           await io.logger.error("Transactions error", transactionsError);
@@ -84,6 +100,8 @@ client.defineJob({
                 amount: transaction.amount,
                 name: transaction.name,
                 currency: transaction.currency,
+                category: transaction.category_slug,
+                status: transaction.status,
               })),
             },
           });

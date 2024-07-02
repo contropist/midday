@@ -1,12 +1,14 @@
 import { Cookies } from "@/utils/constants";
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
+import { getSession } from "@midday/supabase/cached-queries";
 import { createClient } from "@midday/supabase/server";
+import { addYears } from "date-fns";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export const preferredRegion = ["fra1", "sfo1"];
+export const preferredRegion = ["fra1", "sfo1", "iad1"];
 
 export async function GET(req: NextRequest) {
   const cookieStore = cookies();
@@ -22,7 +24,9 @@ export async function GET(req: NextRequest) {
   }
 
   if (provider) {
-    cookieStore.set(Cookies.PreferredSignInProvider, provider);
+    cookieStore.set(Cookies.PreferredSignInProvider, provider, {
+      expires: addYears(new Date(), 1),
+    });
   }
 
   if (code) {
@@ -30,31 +34,29 @@ export async function GET(req: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
 
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await getSession();
 
-    if (user) {
-      const userId = user.id;
+    if (session) {
+      const userId = session.user.id;
 
-      await logsnag.track({
-        event: LogEvents.SignedIn.name,
-        icon: LogEvents.SignedIn.icon,
-        user_id: userId,
-        notify: true,
-        channel: LogEvents.SignedIn.channel,
+      const analytics = await setupAnalytics({
+        userId,
+        fullName: session?.user?.user_metadata?.full_name,
       });
 
-      await logsnag.identify({
-        user_id: userId,
-        properties: {
-          name: user.user_metadata?.full_name,
-        },
+      await analytics.track({
+        event: LogEvents.SignIn.name,
+        channel: LogEvents.SignIn.channel,
       });
     }
   }
 
   if (!mfaSetupVisited) {
-    cookieStore.set(Cookies.MfaSetupVisited, "true");
+    cookieStore.set(Cookies.MfaSetupVisited, "true", {
+      expires: addYears(new Date(), 1),
+    });
+
     return NextResponse.redirect(`${requestUrl.origin}/mfa/setup`);
   }
 

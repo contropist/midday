@@ -3,7 +3,7 @@
 import { action } from "@/actions/safe-action";
 import { createProjectSchema } from "@/actions/schema";
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
 import { getUser } from "@midday/supabase/cached-queries";
 import { createProject } from "@midday/supabase/mutations";
 import { createClient } from "@midday/supabase/server";
@@ -17,15 +17,18 @@ export const createProjectAction = action(
 
     const { data } = await createProject(supabase, {
       ...params,
-      team_id: user.data.team_id,
+      team_id: user?.data?.team_id,
     });
 
-    revalidateTag(`tracker_projects_${user.data.team_id}`);
+    revalidateTag(`tracker_projects_${user?.data?.team_id}`);
 
-    logsnag.track({
+    const analytics = await setupAnalytics({
+      userId: user?.data?.id,
+      fullName: user?.data?.full_name,
+    });
+
+    analytics.track({
       event: LogEvents.ProjectCreated.name,
-      icon: LogEvents.ProjectCreated.icon,
-      user_id: user.data.email,
       channel: LogEvents.ProjectCreated.channel,
     });
 

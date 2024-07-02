@@ -1,6 +1,6 @@
 "use client";
 
-import { UpdateUserFormValues, updateUserSchema } from "@/actions/schema";
+import { type UpdateUserFormValues, updateUserSchema } from "@/actions/schema";
 import { updateUserAction } from "@/actions/update-user-action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@midday/ui/button";
@@ -24,7 +24,11 @@ import { Loader2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 
-export function DisplayName({ fullName }) {
+type Props = {
+  fullName: string;
+};
+
+export function DisplayName({ fullName }: Props) {
   const action = useAction(updateUserAction);
   const form = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserSchema),
@@ -33,9 +37,9 @@ export function DisplayName({ fullName }) {
     },
   });
 
-  const onSubmit = form.handleSubmit(async (data) => {
+  const onSubmit = form.handleSubmit((data) => {
     action.execute({
-      full_name: data.full_name,
+      full_name: data?.full_name,
     });
   });
 
@@ -65,7 +69,7 @@ export function DisplayName({ fullName }) {
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck="false"
-                      maxLength="32"
+                      maxLength={32}
                     />
                   </FormControl>
                   <FormMessage />

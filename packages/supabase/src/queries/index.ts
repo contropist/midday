@@ -1,44 +1,22 @@
+import { UTCDate } from "@date-fns/utc";
 import {
   addDays,
-  addMonths,
-  addWeeks,
-  differenceInMonths,
-  differenceInWeeks,
-  format,
+  endOfMonth,
   isWithinInterval,
+  startOfMonth,
   subYears,
 } from "date-fns";
-import { Client } from "../types";
+import type { Client } from "../types";
 import { EMPTY_FOLDER_PLACEHOLDER_FILE_NAME } from "../utils/storage";
 
-export function getPagination(page: number, size: number) {
-  const limit = size ? +size : 3;
-  const from = page ? page * limit : 0;
-  const to = page ? from + size - 1 : size - 1;
-
-  return { from, to };
-}
-
-export function getMonthRange(current: Date, previous: Date) {
-  const range = [];
-  const months = Math.abs(differenceInMonths(current, previous)) + 1;
-
-  for (let i = 0; i < months; i++) {
-    range.push(addMonths(new Date(current), i));
-  }
-
-  return range;
-}
-
-export function getWeekRange(current: Date, previous: Date) {
-  const range = [];
-  const weeks = Math.abs(differenceInWeeks(current, previous)) + 1;
-
-  for (let i = 0; i < weeks; i++) {
-    range.push(addWeeks(new Date(current), i));
-  }
-
-  return range;
+function transactionCategory(transaction) {
+  return (
+    transaction?.category ?? {
+      id: "uncategorized",
+      name: "Uncategorized",
+      color: "#606060",
+    }
+  );
 }
 
 export function getPercentageIncrease(a: number, b: number) {
@@ -61,10 +39,13 @@ export async function getUserQuery(supabase: Client, userId: string) {
 
 export async function getCurrentUserTeamQuery(supabase: Client) {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  return getUserQuery(supabase, user?.id);
+  if (!session?.user) {
+    return;
+  }
+  return getUserQuery(supabase, session.user?.id);
 }
 
 export async function getBankConnectionsByTeamIdQuery(
@@ -72,25 +53,36 @@ export async function getBankConnectionsByTeamIdQuery(
   teamId: string
 ) {
   return supabase
-    .from("decrypted_bank_connections")
-    .select("*, name:decrypted_name")
+    .from("bank_connections")
+    .select("*")
     .eq("team_id", teamId)
     .throwOnError();
 }
 
+export type GetTeamBankAccountsParams = {
+  teamId: string;
+  enabled?: boolean;
+};
+
 export async function getTeamBankAccountsQuery(
   supabase: Client,
-  teamId: string
+  params: GetTeamBankAccountsParams
 ) {
-  return supabase
-    .from("decrypted_bank_accounts")
-    .select(
-      "*, name:decrypted_name, bank:decrypted_bank_connections(*, name:decrypted_name)"
-    )
+  const { teamId, enabled } = params;
+
+  const query = supabase
+    .from("bank_accounts")
+    .select("*, bank:bank_connections(*)")
     .eq("team_id", teamId)
     .order("created_at", { ascending: true })
     .order("name", { ascending: false })
     .throwOnError();
+
+  if (enabled) {
+    query.eq("enabled", enabled);
+  }
+
+  return query;
 }
 
 export async function getTeamMembersQuery(supabase: Client, teamId: string) {
@@ -142,93 +134,41 @@ export async function getTeamUserQuery(
   };
 }
 
-type GetSpendingParams = {
+export type GetSpendingParams = {
   from: string;
   to: string;
   teamId: string;
+  currency: string;
 };
 
 export async function getSpendingQuery(
   supabase: Client,
   params: GetSpendingParams
 ) {
-  const query = supabase
-    .from("transactions")
-    .select(
-      `
-      currency,
-      category,
-      amount
-    `
-    )
-    .order("date", { ascending: false })
-    .order("name", { ascending: false })
-    .eq("team_id", params.teamId)
-    .lt("amount", 0)
-    .or("status.eq.pending,status.eq.posted")
-    .throwOnError();
-
-  if (params.from && params.to) {
-    query.gte("date", params.from);
-    query.lte("date", params.to);
-  }
-
-  const { data, count } = await query.range(0, 1000000);
-  const totalAmount = data
-    ?.filter((item) => item.category !== "transfer")
-    ?.reduce((amount, item) => item.amount + amount, 0);
-
-  const combinedValues = {};
-
-  for (const item of data) {
-    const { category, amount, currency } = item;
-
-    const key = category || "uncategorized";
-
-    if (combinedValues[key]) {
-      combinedValues[key].amount += amount;
-    } else {
-      combinedValues[key] = { amount, currency };
-    }
-  }
-
-  return {
-    meta: {
-      count,
-      totalAmount: +Math.abs(totalAmount).toFixed(2),
-      currency: data?.at(0)?.currency,
-    },
-    data: Object.entries(combinedValues)
-      .map(([category, { amount, currency }]) => {
-        return {
-          category: category || "uncategorized",
-          currency,
-          amount: +Math.abs(amount).toFixed(2),
-          precentage: Math.round((amount / totalAmount) * 100),
-        };
-      })
-      .sort((a, b) => b.amount - a.amount),
-  };
+  return supabase.rpc("get_spending", {
+    team_id: params.teamId,
+    date_from: params.from,
+    date_to: params.to,
+    currency_target: params.currency,
+  });
 }
 
-type GetTransactionsParams = {
+export type GetTransactionsParams = {
   teamId: string;
   to: number;
   from: number;
-  sort: {
+  sort?: {
     column: string;
     value: "asc" | "desc";
   };
-  search?: {
-    query?: string;
-    fuzzy?: boolean;
-  };
-  filter: {
+  searchQuery?: string;
+  filter?: {
     status?: "fullfilled" | "unfullfilled" | "excluded";
     attachments?: "include" | "exclude";
     categories?: string[];
+    accounts?: string[];
     type?: "income" | "expense";
-    date: {
+    date?: {
       from?: string;
       to?: string;
     };
@@ -239,41 +179,56 @@ export async function getTransactionsQuery(
   supabase: Client,
   params: GetTransactionsParams
 ) {
-  const { from = 0, to, filter, sort, teamId, search } = params;
-  const { date = {}, status, attachments, categories, type } = filter || {};
+  const { from = 0, to, filter, sort, teamId, searchQuery } = params;
+  const {
+    date = {},
+    status,
+    attachments,
+    categories,
+    type,
+    accounts,
+  } = filter || {};
+
+  const columns = [
+    "id",
+    "date",
+    "amount",
+    "currency",
+    "method",
+    "status",
+    "note",
+    "manual",
+    "name",
+    "description",
+    "assigned:assigned_id(*)",
+    "category:transaction_categories(id, name, color, slug)",
+    "bank_account:bank_accounts(id, name, currency, bank_connection:bank_connections(id, logo_url))",
+    "attachments:transaction_attachments(id, name, size, path, type)",
+    "vat:calculated_vat",
+  ];
 
   const query = supabase
-    .from("decrypted_transactions")
-    .select(
-      `
-      *,
-      name:decrypted_name,
-      description:decrypted_description,
-      assigned:assigned_id(*),
-      attachments:transaction_attachments(*),
-      bank_account:decrypted_bank_accounts(id, name:decrypted_name, currency, bank_connection:decrypted_bank_connections(id, logo_url))
-      `,
-      { count: "exact" }
-    )
+    .from("transactions")
+    .select(columns.join(","), { count: "exact" })
     .eq("team_id", teamId);
 
   if (sort) {
     const [column, value] = sort;
+    const ascending = value === "asc";
 
     if (column === "attachment") {
-      // TODO: Order by attachment i.e status
-      // query.order("transaction_attachments", {
-      //   ascending: value === "asc",
-      // });
+      query.order("is_fulfilled", { ascending });
     } else if (column === "assigned") {
-      query.order("assigned_id", { ascending: value === "asc" });
+      query.order("assigned_id", { ascending });
+    } else if (column === "bank_account") {
+      query.order("bank_account_id", { ascending });
     } else {
-      query.order(column, { ascending: value === "asc" });
+      query.order(column, { ascending });
     }
   } else {
     query
       .order("date", { ascending: false })
-      .order("name", { ascending: false });
+      .order("created_at", { ascending: false });
   }
 
   if (date?.from && date?.to) {
@@ -281,66 +236,35 @@ export async function getTransactionsQuery(
     query.lte("date", date.to);
   }
 
-  if (search?.query && search?.fuzzy) {
-    if (!Number.isNaN(parseInt(search.query))) {
-      // NOTE: amount_text is a pg_function that casts amount to text
-      query.like("amount_text", `%${search.query}%`);
+  if (searchQuery) {
+    if (!Number.isNaN(Number.parseInt(searchQuery))) {
+      query.like("amount_text", `%${searchQuery}%`);
     } else {
-      query.ilike("decrypted_name", `%${search.query}%`);
+      query.ilike("name", `%${searchQuery}%`);
     }
-  }
-
-  if (search?.query && !search?.fuzzy) {
-    if (!Number.isNaN(parseInt(search.query))) {
-      // NOTE: amount_text is a pg_function that casts amount to text
-      query.like("amount_text", `%${search.query}%`);
-    } else {
-      query.textSearch("decrypted_name", search.query, {
-        type: "websearch",
-        config: "english",
-      });
-    }
-  }
-
-  if (attachments === "exclude" || status?.includes("unfullfilled")) {
-    query.filter("transaction_attachments.id", "is", null);
   }
 
   if (status?.includes("fullfilled") || attachments === "include") {
-    query.select(`
-      *,
-      name:decrypted_name,
-      description:decrypted_description,
-      assigned:assigned_id(*),
-      attachments:transaction_attachments!inner(id,size,name),
-      bank_account:decrypted_bank_accounts(id, name:decrypted_name, currency, bank_connection:decrypted_bank_connections(id, logo_url))
-    `);
+    query.eq("is_fulfilled", true);
+  }
+
+  if (status?.includes("unfulfilled") || attachments === "exclude") {
+    query.eq("is_fulfilled", false);
   }
 
   if (status?.includes("excluded")) {
     query.eq("status", "excluded");
   } else {
-    query.or("status.eq.pending,status.eq.posted");
+    query.or("status.eq.pending,status.eq.posted,status.eq.completed");
   }
 
   if (categories) {
-    query.select(
-      `
-      *,
-      name:decrypted_name,
-      description:decrypted_description,
-      assigned:assigned_id(*),
-      attachments:transaction_attachments(*),
-      bank_account:decrypted_bank_accounts(id, name:decrypted_name, currency, bank_connection:decrypted_bank_connections(id, logo_url))
-    `
-    );
-
     const matchCategory = categories
       .map((category) => {
         if (category === "uncategorized") {
-          return "category.is.null";
+          return "category_slug.is.null";
         }
-        return `category.eq.${category}`;
+        return `category_slug.eq.${category}`;
       })
       .join(",");
 
@@ -349,66 +273,67 @@ export async function getTransactionsQuery(
 
   if (type === "expense") {
     query.lt("amount", 0);
-    query.neq("category", "transfer");
+    query.neq("category_slug", "transfer");
   }
 
   if (type === "income") {
-    query.eq("category", "income");
+    query.eq("category_slug", "income");
   }
 
-  const { data, count } = await query.range(from, to).throwOnError();
+  if (accounts?.length) {
+    query.in("bank_account_id", accounts);
+  }
 
-  // Only calculate total amount when a filters are applied
-  // Investigate pg functions
-  const totalAmount =
-    Object.keys(filter).length > 0
-      ? (await query.limit(1000000).neq("category", "transfer"))?.data?.reduce(
-          (amount, item) => item.amount + amount,
-          0
-        )
-      : 0;
+  const { data, count } = await query.range(from, to);
 
-  const totalMissingAttachments = data?.reduce((acc, currentItem) => {
-    if (currentItem.attachments?.length === 0) {
-      return acc + 1;
-    }
-    return acc;
-  }, 0);
+  const totalAmount = data
+    ?.filter((transaction) => transaction?.category?.slug !== "transfer")
+    ?.reduce((acc, { amount, currency }) => {
+      const existingCurrency = acc.find((item) => item.currency === currency);
+
+      if (existingCurrency) {
+        existingCurrency.amount += amount;
+      } else {
+        acc.push({ amount, currency });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a?.amount - b?.amount);
 
   return {
     meta: {
-      count,
       totalAmount,
-      totalMissingAttachments,
-      currency: data?.at(0)?.currency,
+      count,
     },
     data: data?.map((transaction) => ({
       ...transaction,
-      category: transaction?.category || "uncategorized",
+      category: transactionCategory(transaction),
     })),
   };
 }
 
 export async function getTransactionQuery(supabase: Client, id: string) {
+  const columns = [
+    "*",
+    "name",
+    "description",
+    "assigned:assigned_id(*)",
+    "category:category_slug(id, name, vat)",
+    "attachments:transaction_attachments(*)",
+    "bank_account:bank_accounts(id, name, currency, bank_connection:bank_connections(id, logo_url))",
+    "vat:calculated_vat",
+  ];
+
   const { data } = await supabase
-    .from("decrypted_transactions")
-    .select(
-      `
-      *,
-      name:decrypted_name,
-      description:decrypted_description,
-      assigned:assigned_id(*),
-      attachments:transaction_attachments(*),
-      bank_account:decrypted_bank_accounts(id, name:decrypted_name, currency, bank_connection:decrypted_bank_connections(id, logo_url))
-    `
-    )
+    .from("transactions")
+    .select(columns.join(","))
     .eq("id", id)
     .single()
     .throwOnError();
 
   return {
     ...data,
-    category: data?.category || "uncategorized",
+    category: transactionCategory(data),
   };
 }
 
@@ -424,151 +349,168 @@ export async function getSimilarTransactions(
   const { name, teamId } = params;
 
   return supabase
-    .from("decrypted_transactions")
+    .from("transactions")
     .select("id, amount, team_id", { count: "exact" })
-    .eq("decrypted_name", name)
+    .eq("name", name)
     .eq("team_id", teamId)
     .throwOnError();
 }
 
-type GetMetricsParams = {
+type GetBankAccountsCurrenciesParams = {
+  teamId: string;
+};
+
+export async function getBankAccountsCurrenciesQuery(
+  supabase: Client,
+  params: GetBankAccountsCurrenciesParams
+) {
+  return supabase.rpc("get_bank_account_currencies", {
+    team_id: params.teamId,
+  });
+}
+
+export type GetBurnRateQueryParams = {
   teamId: string;
   from: string;
   to: string;
+  currency: string;
+};
+
+export async function getBurnRateQuery(
+  supabase: Client,
+  params: GetBurnRateQueryParams
+) {
+  const { teamId, from, to, currency } = params;
+
+  const fromDate = new UTCDate(from);
+  const toDate = new UTCDate(to);
+
+  return supabase.rpc("get_burn_rate", {
+    team_id: teamId,
+    date_from: startOfMonth(fromDate).toDateString(),
+    date_to: endOfMonth(toDate).toDateString(),
+    currency,
+  });
+}
+
+export type GetRunwayQueryParams = {
+  teamId: string;
+  from: string;
+  to: string;
+  currency: string;
+};
+
+export async function getRunwayQuery(
+  supabase: Client,
+  params: GetRunwayQueryParams
+) {
+  const { teamId, from, to, currency } = params;
+
+  const fromDate = new UTCDate(from);
+  const toDate = new UTCDate(to);
+
+  return supabase.rpc("get_runway", {
+    team_id: teamId,
+    date_from: startOfMonth(fromDate).toDateString(),
+    date_to: endOfMonth(toDate).toDateString(),
+    currency,
+  });
+}
+
+export type GetCurrentBurnRateQueryParams = {
+  teamId: string;
+  currency: string;
+};
+
+export async function getCurrentBurnRateQuery(
+  supabase: Client,
+  params: GetCurrentBurnRateQueryParams
+) {
+  const { teamId, currency } = params;
+
+  return supabase.rpc("get_current_burn_rate", {
+    team_id: teamId,
+    currency,
+  });
+}
+
+export type GetMetricsParams = {
+  teamId: string;
+  from: string;
+  to: string;
+  currency: string;
   type?: "revenue" | "profit";
-  period?: "weekly" | "monthly";
 };
 
 export async function getMetricsQuery(
   supabase: Client,
   params: GetMetricsParams
 ) {
-  const { teamId, from, to, type, period = "monthly" } = params;
+  const { teamId, from, to, type = "profit", currency } = params;
 
-  const previousFromDate = subYears(new Date(from), 1);
-  const dateFormat = period === "monthly" ? "y-M" : "y-ww";
+  const rpc = type === "profit" ? "get_profit" : "get_revenue";
 
-  const query = supabase
-    .from("transactions")
-    .select(
-      `
-      amount,
-      date,
-      currency
-    `
-    )
-    .eq("team_id", teamId)
-    .or("status.eq.pending,status.eq.posted")
-    .order("date", { ascending: false })
-    .order("name", { ascending: false })
-    .limit(1000000)
-    .gte("date", previousFromDate.toDateString())
-    .lte("date", to);
+  const fromDate = new UTCDate(from);
+  const toDate = new UTCDate(to);
 
-  if (type === "profit") {
-    query.or("category.neq.transfer,category.is.null");
-  }
-
-  if (type === "revenue") {
-    query.eq("category", "income");
-  }
-
-  const { data } = await query.throwOnError();
-
-  const sum = [
-    ...data
-      .reduce((map, item) => {
-        const key = format(new Date(item.date), dateFormat);
-        const prev = map.get(key);
-
-        if (prev) {
-          prev.value += item.amount;
-        } else {
-          map.set(key, {
-            key,
-            date: item.date,
-            value: item.amount,
-            currency: item.currency,
-          });
-        }
-
-        return map;
-      }, new Map())
-      .values(),
-  ];
-
-  const result = sum?.reduce((acc, item) => {
-    const key = format(new Date(item.date), "y");
-
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(item);
-    return acc;
-  }, {});
-
-  const [prevData = [], currentData = [], nextData = []] =
-    Object.values(result);
-
-  // NOTE: If dates spans over years
-  const combinedData = [...currentData, ...nextData];
+  const [{ data: prevData }, { data: currentData }] = await Promise.all([
+    supabase.rpc(rpc, {
+      team_id: teamId,
+      date_from: subYears(startOfMonth(fromDate), 1).toDateString(),
+      date_to: subYears(endOfMonth(toDate), 1).toDateString(),
+      currency,
+    }),
+    supabase.rpc(rpc, {
+      team_id: teamId,
+      date_from: startOfMonth(fromDate).toDateString(),
+      date_to: endOfMonth(toDate).toDateString(),
+      currency,
+    }),
+  ]);
 
   const prevTotal = prevData?.reduce((value, item) => item.value + value, 0);
-  const currentTotal = combinedData?.reduce(
+  const currentTotal = currentData?.reduce(
     (value, item) => item.value + value,
     0
   );
-
-  const current = new Date(from);
-  const previous = new Date(to);
-  const range =
-    period === "weekly"
-      ? getWeekRange(current, previous)
-      : getMonthRange(current, previous);
 
   return {
     summary: {
       currentTotal,
       prevTotal,
-      currency: data?.at(0)?.currency,
+      currency,
     },
     meta: {
       type,
-      period,
     },
-    result: range.map((date) => {
-      const currentKey = format(date, dateFormat);
-      const previousKey = format(subYears(date, 1), dateFormat);
-      const current = combinedData?.find((p) => p.key === currentKey);
-      const currentValue = current?.value ?? 0;
-      const previous = prevData?.find((p) => p.key === previousKey);
-      const previousValue = previous?.value ?? 0;
+    result: currentData?.map((record, index) => {
+      const prev = prevData?.at(index);
 
       return {
-        date: date.toISOString(),
-        previous: {
-          date: subYears(date, 1).toISOString(),
-          value: previousValue ?? 0,
-          currency: previous?.currency || data?.at(0)?.currency,
-        },
-        current: {
-          date: date.toISOString(),
-          value: currentValue ?? 0,
-          currency: current?.currency || data?.at(0)?.currency,
-        },
+        date: record.date,
         precentage: {
           value: getPercentageIncrease(
-            Math.abs(previousValue),
-            Math.abs(currentValue)
+            Math.abs(prev?.value),
+            Math.abs(record.value)
           ),
-          status: currentValue > previousValue ? "positive" : "negative",
+          status: record.value > prev?.value ? "positive" : "negative",
+        },
+        current: {
+          date: record.date,
+          value: record.value,
+          currency,
+        },
+        previous: {
+          date: prev?.date,
+          value: prev?.value,
+          currency,
         },
       };
     }),
   };
 }
 
-type GetVaultParams = {
+export type GetVaultParams = {
   teamId: string;
   path?: string;
 };
@@ -726,35 +668,70 @@ export async function getUserInviteQuery(
 
 type GetInboxQueryParams = {
   teamId: string;
-  status: "completed" | "archived";
   from?: number;
   to?: number;
+  done?: boolean;
+  todo?: boolean;
+  ascending?: boolean;
+  searchQuery?: string;
 };
 
 export async function getInboxQuery(
   supabase: Client,
   params: GetInboxQueryParams
 ) {
-  const { from = 0, to = 10, teamId, status } = params;
+  const {
+    from = 0,
+    to = 10,
+    teamId,
+    done,
+    todo,
+    searchQuery,
+    ascending = false,
+  } = params;
+
+  const columns = [
+    "id",
+    "file_name",
+    "file_path",
+    "display_name",
+    "transaction_id",
+    "amount",
+    "currency",
+    "content_type",
+    "due_date",
+    "status",
+    "forwarded_to",
+    "created_at",
+    "website",
+    "due_date",
+    "transaction:transactions(id, amount, currency, name, date)",
+  ];
 
   const query = supabase
-    .from("decrypted_inbox")
-    .select(
-      "*, subject:decrypted_subject, issuer_name:decrypted_issuer_name, name:decrypted_name, transaction:decrypted_transactions(id, amount, currency, name:decrypted_name, date)",
-      {
-        count: "exact",
-      }
-    )
+    .from("inbox")
+    .select(columns.join(","))
     .eq("team_id", teamId)
-    .eq("archived", false)
-    .eq("trash", false)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending })
+    .neq("status", "deleted");
 
-  if (status === "completed") {
+  if (done) {
     query.not("transaction_id", "is", null);
   }
 
-  const { data, count } = await query.range(from, to);
+  if (todo) {
+    query.is("transaction_id", null);
+  }
+
+  if (searchQuery) {
+    if (!Number.isNaN(Number.parseInt(searchQuery))) {
+      query.like("inbox_amount_text", `%${searchQuery}%`);
+    } else {
+      query.textSearch("fts", `${searchQuery}:*`);
+    }
+  }
+
+  const { data } = await query.range(from, to);
 
   return {
     data: data?.map((item) => {
@@ -769,11 +746,10 @@ export async function getInboxQuery(
         review: !pending && !item.transaction_id,
       };
     }),
-    count,
   };
 }
 
-type GetTrackerProjectsQueryParams = {
+export type GetTrackerProjectsQueryParams = {
   teamId: string;
   to: number;
   from?: number;
@@ -831,7 +807,7 @@ export async function getTrackerProjectsQuery(
   };
 }
 
-type GetTrackerRecordsByRangeParams = {
+export type GetTrackerRecordsByRangeParams = {
   teamId: string;
   from: string;
   to: string;
@@ -842,6 +818,10 @@ export async function getTrackerRecordsByRangeQuery(
   supabase: Client,
   params: GetTrackerRecordsByRangeParams
 ) {
+  if (!params.teamId) {
+    return null;
+  }
+
   const query = supabase
     .from("tracker_entries")
     .select(
@@ -880,4 +860,55 @@ export async function getTrackerRecordsByRangeQuery(
     },
     data: result,
   };
+}
+
+export type GetCategoriesParams = {
+  teamId: string;
+  limit?: number;
+};
+
+export async function getCategoriesQuery(
+  supabase: Client,
+  params: GetCategoriesParams
+) {
+  const { teamId, limit = 1000 } = params;
+
+  return supabase
+    .from("transaction_categories")
+    .select("id, name, color, slug, description, system, vat")
+    .eq("team_id", teamId)
+    .order("created_at", { ascending: false })
+    .range(0, limit);
+}
+
+type GetInboxSearchParams = {
+  teamId: string;
+  limit?: number;
+  q: string;
+};
+
+export async function getInboxSearchQuery(
+  supabase: Client,
+  params: GetInboxSearchParams
+) {
+  const { teamId, q, limit = 10 } = params;
+
+  const query = supabase
+    .from("inbox")
+    .select(
+      "id, created_at, file_name, amount, currency, file_path, content_type, due_date, display_name, size"
+    )
+    .eq("team_id", teamId)
+    .neq("status", "deleted")
+    .order("created_at", { ascending: true });
+
+  if (!Number.isNaN(Number.parseInt(q))) {
+    query.like("inbox_amount_text", `%${q}%`);
+  } else {
+    query.textSearch("fts", `${q}:*`);
+  }
+
+  const { data } = await query.range(0, limit);
+
+  return data;
 }

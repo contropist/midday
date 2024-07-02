@@ -3,7 +3,7 @@
 import { action } from "@/actions/safe-action";
 import { updateProjectSchema } from "@/actions/schema";
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
 import { getUser } from "@midday/supabase/cached-queries";
 import { createClient } from "@midday/supabase/server";
 import { revalidateTag } from "next/cache";
@@ -20,10 +20,13 @@ export const updateProjectAction = action(
 
     revalidateTag(`tracker_projects_${user.data.team_id}`);
 
-    logsnag.track({
+    const analytics = await setupAnalytics({
+      userId: user.data.id,
+      fullName: user.data.full_name,
+    });
+
+    analytics.track({
       event: LogEvents.ProjectUpdated.name,
-      icon: LogEvents.ProjectUpdated.icon,
-      user_id: user.data.email,
       channel: LogEvents.ProjectUpdated.channel,
     });
   }

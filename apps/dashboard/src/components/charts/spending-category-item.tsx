@@ -2,20 +2,29 @@
 
 import { useCurrentLocale } from "@/locales/client";
 import { formatAmount } from "@/utils/format";
-import { CategoryIcon } from "../category";
+import { CategoryColor } from "../category";
+
+type Props = {
+  name: string;
+  color: string;
+  amount: number;
+  currency: string;
+  percentage: number;
+};
 
 export function SpendingCategoryItem({
-  category,
+  name,
+  color,
   amount,
   currency,
-  precentage,
-}) {
+  percentage,
+}: Props) {
   const locale = useCurrentLocale();
 
   return (
     <div className="px-3 py-1 flex justify-between items-center space-x-12">
       <div className="text-sm font-medium flex items-center space-x-2">
-        {category && <CategoryIcon name={category} />}
+        <CategoryColor name={name} color={color} />
         <p>
           {amount &&
             formatAmount({
@@ -27,7 +36,7 @@ export function SpendingCategoryItem({
             })}
         </p>
       </div>
-      <p className="text-sm text-[#606060] truncate">{precentage}%</p>
+      <p className="text-sm text-[#606060] truncate">{percentage}%</p>
     </div>
   );
 }

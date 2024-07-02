@@ -7,7 +7,12 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
-export function DataTableHeader({ table }) {
+type Props = {
+  table?: any;
+  loading?: boolean;
+};
+
+export function DataTableHeader({ table, loading }: Props) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -34,6 +39,7 @@ export function DataTableHeader({ table }) {
   );
 
   const isVisible = (id) =>
+    loading ||
     table
       ?.getAllLeafColumns()
       .find((col) => col.id === id)
@@ -41,8 +47,8 @@ export function DataTableHeader({ table }) {
 
   return (
     <TableHeader>
-      <TableRow className="h-[45px]">
-        <TableHead className="w-[50px]">
+      <TableRow className="h-[45px] hover:bg-transparent">
+        <TableHead className="w-[50px] hidden md:table-cell px-3 md:px-4 py-2">
           <Checkbox
             checked={
               table?.getIsAllPageRowsSelected() ||
@@ -55,7 +61,7 @@ export function DataTableHeader({ table }) {
         </TableHead>
 
         {isVisible("date") && (
-          <TableHead className="w-[120px]">
+          <TableHead className="w-[120px] px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -69,7 +75,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("description") && (
-          <TableHead className="w-[320px]">
+          <TableHead className="w-[100px] md:w-[320px] px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -83,7 +89,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("amount") && (
-          <TableHead className="w-[200px]">
+          <TableHead className="md:w-[200px] px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -99,7 +105,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("category") && (
-          <TableHead className="w-[240px]">
+          <TableHead className="md:w-[240px] hidden md:table-cell px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -117,13 +123,13 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("bank_account") && (
-          <TableHead className="w-[250px]">
+          <TableHead className="md:w-[250px] hidden md:table-cell px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
               onClick={() => createSortQuery("bank_account")}
             >
-              <span>Bank Account</span>
+              <span>Account</span>
               {"bank_account" === column && value === "asc" && (
                 <ArrowDown size={16} />
               )}
@@ -135,7 +141,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("method") && (
-          <TableHead className="w-[200px]">
+          <TableHead className="md:w-[200px] hidden md:table-cell px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -151,7 +157,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("assigned") && (
-          <TableHead className="w-[220px]">
+          <TableHead className="md:w-[220px] hidden md:table-cell px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"
@@ -169,7 +175,7 @@ export function DataTableHeader({ table }) {
         )}
 
         {isVisible("status") && (
-          <TableHead>
+          <TableHead className="hidden md:table-cell px-3 md:px-4 py-2">
             <Button
               className="p-0 hover:bg-transparent space-x-2"
               variant="ghost"

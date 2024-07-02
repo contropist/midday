@@ -7,10 +7,10 @@
     "clean": "rm -rf .turbo node_modules",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "check:types": "tsc --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@upstash/redis": "^1.28.4",
+    "@upstash/redis": "^1.31.6",
     "server-only": "^0.0.1"
   }
 }

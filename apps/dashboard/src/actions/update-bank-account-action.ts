@@ -1,7 +1,7 @@
 "use server";
 
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
 import { getUser } from "@midday/supabase/cached-queries";
 import { updateBankAccount } from "@midday/supabase/mutations";
 import { createClient } from "@midday/supabase/server";
@@ -21,13 +21,17 @@ export const updateBankAccountAction = action(
     });
 
     revalidateTag(`bank_accounts_${data.team_id}`);
+    revalidateTag(`bank_accounts_currencies_${data.team_id}`);
     revalidateTag(`bank_connections_${data.team_id}`);
     revalidateTag(`transactions_${data.team_id}`);
 
-    logsnag.track({
+    const analytics = await setupAnalytics({
+      userId: user.data.id,
+      fullName: user.data.full_name,
+    });
+
+    analytics.track({
       event: LogEvents.DeleteBank.name,
-      icon: LogEvents.DeleteBank.icon,
-      user_id: data.created_by,
       channel: LogEvents.DeleteBank.channel,
     });
   }

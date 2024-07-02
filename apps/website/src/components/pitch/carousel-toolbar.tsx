@@ -2,6 +2,7 @@
 
 import { Button } from "@midday/ui/button";
 import { useCarousel } from "@midday/ui/carousel";
+import { cn } from "@midday/ui/cn";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@midday/ui/tooltip";
-import { cn } from "@midday/ui/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useHotkeys } from "react-hotkeys-hook";
 import { FaXTwitter } from "react-icons/fa6";
@@ -85,7 +85,7 @@ export function CarouselToolbar({ views }: Props) {
         <AnimatePresence>
           <motion.div animate={{ y: views > 0 ? 0 : 100 }} initial={{ y: 100 }}>
             <TooltipProvider delayDuration={20}>
-              <div className="flex backdrop-filter backdrop-blur-lg dark:bg-[#1A1A1A]/80 h-10 px-4 py-2 border border-[#2C2C2C] items-center rounded-2xl space-x-4">
+              <div className="flex backdrop-filter backdrop-blur-lg bg-[#1A1A1A]/80 h-10 px-4 py-2 border border-[#2C2C2C] items-center space-x-4">
                 <Tooltip>
                   <TooltipTrigger>
                     <div className="text-[#878787] flex items-center space-x-2 border-r-[1px] border-border pr-4">
@@ -94,6 +94,8 @@ export function CarouselToolbar({ views }: Props) {
                       <span className="text-sm">
                         {Intl.NumberFormat("en", {
                           notation: "compact",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 1,
                         }).format(views ?? 0)}
                       </span>
                     </div>

@@ -1,22 +1,4 @@
 export default {
-  categories: {
-    meals: "Meals",
-    travel: "Travel",
-    software: "Software",
-    office_supplies: "Office Supplies",
-    fees: "Fees",
-    internet_and_telephone: "Internet & Telephone",
-    rent: "Rent",
-    equipment: "Equipment",
-    salary: "Salary",
-    income: "Income",
-    transfer: "Transfer",
-    activity: "Activity",
-    other: "Other",
-    uncategorized: "Uncategorized",
-    taxes: "Taxes",
-    facilities_expenses: "Facilities Expenses",
-  },
   transaction_methods: {
     card_purchase: "Card Purchase",
     payment: "Payment",
@@ -51,11 +33,13 @@ export default {
   },
   inbox_filter: {
     all: "All",
-    completed: "Completed",
+    todo: "Todo",
+    done: "Done",
   },
   chart_type: {
     profit: "Profit",
     revenue: "Revenue",
+    burn_rate: "Burn rate",
   },
   folders: {
     all: "All",
@@ -80,5 +64,18 @@ export default {
     inbox: "Receive notifications about new items in your inbox.",
     match: "Receive notifications about matches.",
     transactions: "Receive notifications about new transactions.",
+  },
+  widgets: {
+    insights: "Assistant",
+    inbox: "Inbox",
+    spending: "Spending",
+    transactions: "Transactions",
+    tracker: "Tracker",
+  },
+  bottom_bar: {
+    "transactions#one": "1 Transaction",
+    "transactions#other": "{count} Transactions",
+    multi_currency: "Multi currency",
+    description: "Includes transactions from all pages of results",
   },
 } as const;

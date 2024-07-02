@@ -63,9 +63,7 @@ export function SectionTraction() {
               <h2 className="text-2xl">GitHub stars</h2>
 
               <p className="text-[#878787] text-sm text-center">
-                Since going open source on the 20th of March 2024 we’ve gained
-                834 stars on GitHub. Our goal is to build a great community
-                around Midday.
+                Our goal is to build a great community around Midday.
               </p>
 
               <div className="flex items-center space-x-4">
@@ -75,21 +73,21 @@ export function SectionTraction() {
                 </span>
                 <span className="mt-auto font-mono text-[80px] md:text-[122px]">
                   {stars &&
-                    Intl.NumberFormat("en", { notation: "compact" }).format(
-                      stars.stargazers_count ?? 0
-                    )}
+                    Intl.NumberFormat("en", {
+                      notation: "compact",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 1,
+                    }).format(stars.stargazers_count ?? 0)}
                 </span>
               </div>
             </Card>
           </div>
           <div className="space-y-8">
             <Card className="min-h-[365px]">
-              <h2 className="text-2xl">Private beta users</h2>
+              <h2 className="text-2xl">Customers</h2>
 
               <p className="text-[#878787] text-sm text-center">
-                This is how many we’ve let into the system to start using it,
-                joined the community and started to form Midday together with
-                us.
+                This is the number of customers currently using Midday.
               </p>
 
               <div className="flex items-center space-x-4">
@@ -128,8 +126,10 @@ export function SectionTraction() {
             </Card>
           </div>
 
-          <div className="ml-auto w-full max-w-[820px] h-full border border-border rounded-xl p-6 bg-[#0C0C0C] relative">
-            <h2 className="mb-24 block text-[38px]">What people say</h2>
+          <div className="ml-auto w-full max-w-[820px] h-full border border-border p-6 bg-[#0C0C0C] relative">
+            <h2 className="mb-24 block text-[38px] font-medium">
+              What people say
+            </h2>
 
             <div className="absolute w-[220px] bottom-6 left-[50%] -mt-5 -ml-[110px] flex justify-center">
               <a

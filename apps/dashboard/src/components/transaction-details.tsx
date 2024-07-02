@@ -1,7 +1,5 @@
-"use client";
-
+import type { UpdateTransactionValues } from "@/actions/schema";
 import { updateSimilarTransactionsAction } from "@/actions/update-similar-transactions-action";
-import { updateTransactionAction } from "@/actions/update-transaction-action";
 import { useI18n } from "@/locales/client";
 import { createClient } from "@midday/supabase/client";
 import { getTransactionQuery } from "@midday/supabase/queries";
@@ -15,14 +13,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@midday/ui/accordion";
+import { cn } from "@midday/ui/cn";
 import { Label } from "@midday/ui/label";
 import { Skeleton } from "@midday/ui/skeleton";
 import { ToastAction } from "@midday/ui/toast";
 import { useToast } from "@midday/ui/use-toast";
-import { cn } from "@midday/ui/utils";
 import { format } from "date-fns";
 import { useAction } from "next-safe-action/hooks";
+import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { AssignUser } from "./assign-user";
 import { Attachments } from "./attachments";
 import { FormatAmount } from "./format-amount";
@@ -30,14 +30,55 @@ import { Note } from "./note";
 import { SelectCategory } from "./select-category";
 import { TransactionBankAccount } from "./transaction-bank-account";
 
-export function TransactionDetails({ transactionId, data: initialData }) {
+type Props = {
+  data: any;
+  ids?: string[];
+  updateTransaction: (
+    values: UpdateTransactionValues,
+    optimisticData: any
+  ) => void;
+};
+
+export function TransactionDetails({
+  data: initialData,
+  ids,
+  updateTransaction,
+}: Props) {
   const [data, setData] = useState(initialData);
+  const [transactionId, setTransactionId] = useQueryState("id");
   const { toast } = useToast();
   const t = useI18n();
   const supabase = createClient();
   const [isLoading, setLoading] = useState(true);
-  const updateTransaction = useAction(updateTransactionAction);
   const updateSimilarTransactions = useAction(updateSimilarTransactionsAction);
+
+  useHotkeys("esc", () => setTransactionId(null));
+
+  const enabled = Boolean(ids?.length);
+
+  useHotkeys(
+    "ArrowUp, ArrowDown",
+    ({ key }) => {
+      if (key === "ArrowUp") {
+        const currentIndex = ids?.indexOf(data?.id) ?? 0;
+        const prevId = ids[currentIndex - 1];
+
+        if (prevId) {
+          setTransactionId(prevId);
+        }
+      }
+
+      if (key === "ArrowDown") {
+        const currentIndex = ids?.indexOf(data?.id) ?? 0;
+        const nextId = ids[currentIndex + 1];
+
+        if (nextId) {
+          setTransactionId(nextId);
+        }
+      }
+    },
+    { enabled }
+  );
 
   useEffect(() => {
     if (initialData) {
@@ -49,7 +90,7 @@ export function TransactionDetails({ transactionId, data: initialData }) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const transaction = await getTransactionQuery(supabase, transactionId);
+        const transaction = await getTransactionQuery(supabase, data?.id);
         setData(transaction);
         setLoading(false);
       } catch {
@@ -62,29 +103,29 @@ export function TransactionDetails({ transactionId, data: initialData }) {
     }
   }, [data]);
 
-  const handleOnAssign = (assigned_id: string) => {
-    updateTransaction.execute({ assigned_id, id: data.id });
-  };
+  const handleOnChangeCategory = async (category: {
+    id: string;
+    name: string;
+    slug: string;
+    color: string;
+  }) => {
+    updateTransaction(
+      { id: data?.id, category_slug: category.slug },
+      { category }
+    );
 
-  const handleOnChangeCategory = async (category: string) => {
-    updateTransaction.execute({ id: data.id, category });
-
-    const { data: userData } = await getCurrentUserTeamQuery(supabase);
+    const user = await getCurrentUserTeamQuery(supabase);
     const transactions = await getSimilarTransactions(supabase, {
       name: data?.name,
-      teamId: userData?.team_id,
+      teamId: user?.data?.team_id,
     });
 
-    if (transactions?.data?.length > 1) {
+    if (transactions?.data && transactions.data.length > 1) {
       toast({
         duration: 6000,
         variant: "ai",
         title: "Midday AI",
-        description: `Do you want to mark ${
-          transactions?.data?.length
-        } similar transactions from ${data?.name} as ${t(
-          `categories.${category}`
-        )} too?`,
+        description: `Do you want to mark ${transactions?.data?.length} similar transactions from ${data?.name} as ${category.name} too?`,
         footer: (
           <div className="flex space-x-2 mt-4">
             <ToastAction altText="Cancel" className="pl-5 pr-5">
@@ -92,7 +133,9 @@ export function TransactionDetails({ transactionId, data: initialData }) {
             </ToastAction>
             <ToastAction
               altText="Yes"
-              onClick={() => updateSimilarTransactions.execute({ id: data.id })}
+              onClick={() => {
+                updateSimilarTransactions.execute({ id: data?.id });
+              }}
               className="pl-5 pr-5 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Yes
@@ -103,8 +146,14 @@ export function TransactionDetails({ transactionId, data: initialData }) {
     }
   };
 
+  const defaultValue = ["attachment"];
+
+  if (data?.note) {
+    defaultValue.push("note");
+  }
+
   return (
-    <>
+    <div>
       <div className="flex justify-between mb-8">
         <div className="flex-1 flex-col">
           {isLoading ? (
@@ -138,14 +187,14 @@ export function TransactionDetails({ transactionId, data: initialData }) {
             )}
           </h2>
           <div className="flex justify-between items-center">
-            <div className="flex flex-col w-full">
+            <div className="flex flex-col w-full space-y-1">
               {isLoading ? (
                 <Skeleton className="w-[50%] h-[30px] rounded-md mb-2" />
               ) : (
                 <span
                   className={cn(
                     "text-4xl font-mono",
-                    data?.category === "income" && "text-[#00C969]"
+                    data?.category?.slug === "income" && "text-[#00C969]"
                   )}
                 >
                   <FormatAmount
@@ -154,6 +203,14 @@ export function TransactionDetails({ transactionId, data: initialData }) {
                   />
                 </span>
               )}
+              <div className="h-3">
+                {data?.vat > 0 && (
+                  <span className="text-[#606060] text-xs">
+                    VAT{" "}
+                    <FormatAmount amount={data.vat} currency={data.currency} />
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -172,11 +229,8 @@ export function TransactionDetails({ transactionId, data: initialData }) {
           </Label>
 
           <SelectCategory
-            placeholder="Select"
-            isLoading={isLoading}
-            name={data?.name}
             id={transactionId}
-            selectedId={data?.category ?? undefined}
+            selected={data?.category}
             onChange={handleOnChangeCategory}
           />
         </div>
@@ -189,12 +243,17 @@ export function TransactionDetails({ transactionId, data: initialData }) {
           <AssignUser
             isLoading={isLoading}
             selectedId={data?.assigned?.id ?? undefined}
-            onSelect={handleOnAssign}
+            onSelect={(user) => {
+              updateTransaction(
+                { assigned_id: user?.id, id: data?.id },
+                { assigned: user }
+              );
+            }}
           />
         </div>
       </div>
 
-      <Accordion type="multiple" defaultValue={["attachment"]}>
+      <Accordion type="multiple" defaultValue={defaultValue}>
         <AccordionItem value="attachment">
           <AccordionTrigger>Attachment</AccordionTrigger>
           <AccordionContent>
@@ -205,10 +264,14 @@ export function TransactionDetails({ transactionId, data: initialData }) {
         <AccordionItem value="note">
           <AccordionTrigger>Note</AccordionTrigger>
           <AccordionContent>
-            <Note id={transactionId} defaultValue={data?.note} />
+            <Note
+              id={data?.id}
+              defaultValue={data?.note}
+              updateTransaction={updateTransaction}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-    </>
+    </div>
   );
 }

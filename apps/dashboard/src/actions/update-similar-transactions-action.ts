@@ -12,12 +12,21 @@ export const updateSimilarTransactionsAction = action(
   async ({ id }) => {
     const supabase = createClient();
     const user = await getUser();
-    const teamId = user.data.team_id;
+    const teamId = user?.data?.team_id;
 
-    await updateSimilarTransactions(supabase, id);
+    if (!teamId) {
+      return null;
+    }
+
+    await updateSimilarTransactions(supabase, {
+      team_id: teamId,
+      id,
+    });
 
     revalidateTag(`transactions_${teamId}`);
     revalidateTag(`spending_${teamId}`);
     revalidateTag(`metrics_${teamId}`);
+    revalidateTag(`current_burn_rate_${teamId}`);
+    revalidateTag(`burn_rate_${teamId}`);
   }
 );

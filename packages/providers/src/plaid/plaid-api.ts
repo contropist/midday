@@ -9,6 +9,8 @@ import {
   type Transaction,
 } from "plaid";
 import type {
+  GetAccountBalanceRequest,
+  GetAccountBalanceResponse,
   GetAccountsRequest,
   GetAccountsResponse,
   GetTransactionsRequest,
@@ -32,6 +34,20 @@ export class PlaidApi {
     });
 
     this.#client = new PlaidBaseApi(configuration);
+  }
+
+  async getAccountBalance({
+    accessToken,
+    accountId,
+  }: GetAccountBalanceRequest): Promise<GetAccountBalanceResponse | undefined> {
+    const accounts = await this.#client.accountsGet({
+      access_token: accessToken,
+      options: {
+        account_ids: [accountId],
+      },
+    });
+
+    return accounts.data.accounts.at(0)?.balances;
   }
 
   async getAccounts({
@@ -66,6 +82,9 @@ export class PlaidApi {
     if (latest) {
       const { data } = await this.#client.transactionsSync({
         access_token: accessToken,
+        options: {
+          days_requested: 730,
+        },
         count: 500,
       });
 
@@ -82,14 +101,10 @@ export class PlaidApi {
         cursor = data.next_cursor;
       }
     }
-    // NOTE: Plaid transactions for all accounts, we need to filter based on the
-    // Provided accountId
-    return (
-      added
-        .filter((transaction) => transaction.account_id === accountId)
-        // NOTE: Remove pending transactions until upsert issue is fixed
-        .filter((transaction) => !transaction.pending)
-    );
+    // NOTE: Fitler on accountId and pending
+    return added
+      .filter((transaction) => transaction.account_id === accountId)
+      .filter((transaction) => !transaction.pending);
   }
 
   async linkTokenCreate({

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "OSS Friends | Midday",
+  title: "OSS Friends",
+  description:
+    "We believe in a better and more sustainable future powered by Open Source software.",
 };
 
 type Friend = {
@@ -41,7 +43,7 @@ export default async function Page() {
           return (
             <div
               key={friend.name}
-              className="border border-border rounded-2xl dark:bg-[#121212] p-4"
+              className="border border-border bg-[#121212] p-4"
             >
               <div className="flex justify-between items-center mb-2">
                 <a href={friend.href} target="_blank" rel="noreferrer">

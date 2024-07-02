@@ -1,3 +1,5 @@
+import { format, isSameYear } from "date-fns";
+
 export function formatSize(bytes: number): string {
   const units = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte"];
 
@@ -52,4 +54,25 @@ export function secondsToHoursAndMinutes(seconds: number) {
   }
 
   return "0h";
+}
+
+type BurnRateData = {
+  value: number;
+  date: string;
+};
+
+export function calculateAvgBurnRate(data: BurnRateData[] | null) {
+  if (!data) {
+    return 0;
+  }
+
+  return data?.reduce((acc, curr) => acc + curr.value, 0) / data?.length;
+}
+
+export function formatTransactionDate(date: string) {
+  if (isSameYear(new Date(), new Date(date))) {
+    return format(new Date(date), "MMM d");
+  }
+
+  return format(new Date(date), "P");
 }

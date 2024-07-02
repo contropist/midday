@@ -30,5 +30,13 @@ exports[`Transform accounts 1`] = `
   },
   "name": "Pleo Account",
   "provider": "gocardless",
+  "type": "depository",
+}
+`;
+
+exports[`Transform account balance 1`] = `
+{
+  "amount": 1942682.86,
+  "currency": "SEK",
 }
 `;

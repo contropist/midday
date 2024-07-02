@@ -1,6 +1,6 @@
 import { addDays } from "date-fns";
 import { getCurrentUserTeamQuery, getUserInviteQuery } from "../queries";
-import type { Client, Database } from "../types";
+import type { Client } from "../types";
 
 type CreateBankAccountsPayload = {
   accounts: {
@@ -11,7 +11,9 @@ type CreateBankAccountsPayload = {
     bank_name: string;
     currency: string;
     enabled: boolean;
+    type: "depository" | "credit" | "other_asset" | "loan" | "other_liability";
   }[];
+  balance: number;
   accessToken?: string;
   enrollmentId?: string;
   teamId: string;
@@ -75,6 +77,7 @@ export async function createBankAccounts(
           name: account.name,
           currency: account.currency,
           enabled: account.enabled,
+          type: account.type,
         }),
         {
           onConflict: "account_id",
@@ -131,37 +134,46 @@ export async function updateTransaction(
   data: any
 ) {
   return supabase
-    .from("decrypted_transactions")
+    .from("transactions")
     .update(data)
     .eq("id", id)
-    .select("id, category, team_id, name:decrypted_name, status")
+    .select("id, category, category_slug, team_id, name, status")
     .single();
 }
 
 export async function updateUser(supabase: Client, data: any) {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user) {
+    return;
+  }
 
   return supabase
     .from("users")
     .update(data)
-    .eq("id", user?.id)
+    .eq("id", session.user.id)
     .select()
     .single();
 }
 
 export async function deleteUser(supabase: Client) {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  await supabase.auth.admin.deleteUser(user.id);
-  // TODO: Delete files etc
-  await supabase.from("users").delete().eq("id", user.id);
-  await supabase.auth.signOut();
+  if (!session?.user) {
+    return;
+  }
 
-  return user.id;
+  await Promise.all([
+    supabase.auth.admin.deleteUser(session.user.id),
+    supabase.from("users").delete().eq("id", session.user.id),
+    supabase.auth.signOut(),
+  ]);
+
+  return session.user.id;
 }
 
 export async function updateTeam(supabase: Client, data: any) {
@@ -170,7 +182,8 @@ export async function updateTeam(supabase: Client, data: any) {
     .from("teams")
     .update(data)
     .eq("id", userData?.team_id)
-    .select();
+    .select()
+    .single();
 }
 
 type UpdateUserTeamRoleParams = {
@@ -248,20 +261,32 @@ export async function updateBankAccount(
     .single();
 }
 
-export async function updateSimilarTransactions(supabase: Client, id: string) {
-  const { data: userData } = await getCurrentUserTeamQuery(supabase);
+type UpdateSimilarTransactionsParams = {
+  id: string;
+  team_id: string;
+};
+
+export async function updateSimilarTransactions(
+  supabase: Client,
+  params: UpdateSimilarTransactionsParams
+) {
+  const { id, team_id } = params;
 
   const transaction = await supabase
-    .from("decrypted_transactions")
-    .select("name:decrypted_name, category")
+    .from("transactions")
+    .select("name, category_slug")
     .eq("id", id)
     .single();
 
+  if (!transaction?.data?.category_slug) {
+    return null;
+  }
+
   return supabase
-    .from("decrypted_transactions")
-    .update({ category: transaction.data.category })
-    .eq("decrypted_name", transaction.data.name)
-    .eq("team_id", userData?.team_id)
+    .from("transactions")
+    .update({ category_slug: transaction.data.category_slug })
+    .eq("name", transaction.data.name)
+    .eq("team_id", team_id)
     .select("id, team_id");
 }
 
@@ -292,29 +317,6 @@ export async function createAttachments(
   return data;
 }
 
-type CreateEnrichmentTransactionParams = {
-  name: string;
-  category: Database["public"]["Enums"]["transactionCategories"];
-};
-
-export async function createEnrichmentTransaction(
-  supabase: Client,
-  params: CreateEnrichmentTransactionParams
-) {
-  const { data: userData } = await getCurrentUserTeamQuery(supabase);
-
-  const { data } = await supabase
-    .from("transaction_enrichments")
-    .insert({
-      name: params.name,
-      category: params.category,
-      created_by: userData?.id,
-    })
-    .select();
-
-  return data;
-}
-
 export async function deleteAttachment(supabase: Client, id: string) {
   const { data } = await supabase
     .from("transaction_attachments")
@@ -331,36 +333,11 @@ type CreateTeamParams = {
 };
 
 export async function createTeam(supabase: Client, params: CreateTeamParams) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.rpc("create_team", {
+    name: params.name,
+  });
 
-  if (!user) {
-    return;
-  }
-
-  const { data: teamData } = await supabase
-    .from("teams")
-    .insert({
-      name: params.name,
-    })
-    .select()
-    .single();
-
-  const { data: userData } = await supabase
-    .from("users_on_team")
-    .insert({
-      user_id: user.id,
-      team_id: teamData?.id,
-      role: "owner",
-    })
-    .select()
-    .single();
-
-  return {
-    ...teamData,
-    ...userData,
-  };
+  return data;
 }
 
 type LeaveTeamParams = {
@@ -388,18 +365,22 @@ export async function leaveTeam(supabase: Client, params: LeaveTeamParams) {
 
 export async function joinTeamByInviteCode(supabase: Client, code: string) {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.user.email) {
+    return;
+  }
 
   const { data: inviteData } = await getUserInviteQuery(supabase, {
     code,
-    email: user?.email,
+    email: session.user.email,
   });
 
   if (inviteData) {
     // Add user team
     await supabase.from("users_on_team").insert({
-      user_id: user.id,
+      user_id: session.user.id,
       team_id: inviteData?.team_id,
       role: inviteData.role,
     });
@@ -410,7 +391,7 @@ export async function joinTeamByInviteCode(supabase: Client, code: string) {
       .update({
         team_id: inviteData?.team_id,
       })
-      .eq("id", user.id)
+      .eq("id", session.user.id)
       .select()
       .single();
 
@@ -425,8 +406,7 @@ export async function joinTeamByInviteCode(supabase: Client, code: string) {
 
 type UpdateInboxByIdParams = {
   id: string;
-  read?: boolean;
-  status?: "completed" | "archived";
+  status?: "deleted";
   attachment_id?: string;
   transaction_id?: string;
   teamId: string;

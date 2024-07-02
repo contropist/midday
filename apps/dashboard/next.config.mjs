@@ -1,7 +1,13 @@
 import "./src/env.mjs";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import("next").NextConfig} */
 const config = {
+  poweredByHeader: false,
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -18,11 +24,9 @@ const config = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // logging: {
-  //   fetches: {
-  //     fullUrl: true,
-  //   },
-  // },
+  experimental: {
+    instrumentationHook: process.env.NODE_ENV === "production",
+  },
   webpack: (config) => {
     /**
      * Critical: prevents " ⨯ ./node_modules/canvas/build/Release/canvas.node
@@ -37,6 +41,19 @@ const config = {
 
     return config;
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+        ],
+      },
+    ];
+  },
 };
 
-export default config;
+export default withBundleAnalyzer(config);

@@ -11,6 +11,7 @@ export const deleteTransactionsAction = action(
   async ({ ids }) => {
     const supabase = createClient();
     const user = await getUser();
+
     const teamId = user.data.team_id;
 
     await supabase
@@ -22,5 +23,7 @@ export const deleteTransactionsAction = action(
     revalidateTag(`transactions_${teamId}`);
     revalidateTag(`spending_${teamId}`);
     revalidateTag(`metrics_${teamId}`);
+    revalidateTag(`current_burn_rate_${teamId}`);
+    revalidateTag(`burn_rate_${teamId}`);
   }
 );

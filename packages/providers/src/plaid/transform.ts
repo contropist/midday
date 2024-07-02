@@ -1,10 +1,16 @@
+import { getType } from "@midday/engine/src/utils/account";
 import { capitalCase } from "change-case";
-import { Transaction, TransactionCode } from "plaid";
-import {
+import type { Transaction, TransactionCode } from "plaid";
+import type {
   Account as BaseAccount,
+  Balance as BaseBalance,
   Transaction as BaseTransaction,
 } from "../types";
-import { TransformAccount, TransformTransaction } from "./types";
+import type {
+  TransformAccount,
+  TransformAccountBalance,
+  TransformTransaction,
+} from "./types";
 
 export const mapTransactionMethod = (type?: TransactionCode | null) => {
   switch (type) {
@@ -25,7 +31,15 @@ export const mapTransactionMethod = (type?: TransactionCode | null) => {
   }
 };
 
-export const mapTransactionCategory = (transaction: Transaction) => {
+type MapTransactionCategory = {
+  transaction: Transaction;
+  amount: number;
+};
+
+export const mapTransactionCategory = ({
+  transaction,
+  amount,
+}: MapTransactionCategory) => {
   if (transaction.personal_finance_category?.primary === "INCOME") {
     return "income";
   }
@@ -38,9 +52,7 @@ export const mapTransactionCategory = (transaction: Transaction) => {
     return "transfer";
   }
 
-  // Positive values when money moves out of the account; negative values when money moves in.
-  // For example, debit card purchases are positive; credit card payments, direct deposits, and refunds are negative.
-  if (transaction?.amount < 0) {
+  if (amount > 0) {
     return "income";
   }
 
@@ -79,7 +91,7 @@ export const mapTransactionCategory = (transaction: Transaction) => {
     transaction.personal_finance_category?.detailed ===
       "RENT_AND_UTILITIES_OTHER_UTILITIES"
   ) {
-    return "facilities_expenses";
+    return "facilities-expenses";
   }
 
   if (
@@ -95,11 +107,11 @@ export const mapTransactionCategory = (transaction: Transaction) => {
     transaction.personal_finance_category?.detailed ===
       "RENT_AND_UTILITIES_TELEPHONE"
   ) {
-    return "internet_and_telephone";
+    return "internet-and-telephone";
   }
 
   if (transaction.personal_finance_category?.primary === "HOME_IMPROVEMENT") {
-    return "office_supplies";
+    return "office-supplies";
   }
 
   if (transaction.personal_finance_category?.primary === "ENTERTAINMENT") {
@@ -109,39 +121,52 @@ export const mapTransactionCategory = (transaction: Transaction) => {
   return null;
 };
 
-const transformToSignedAmount = (amount: number) => {
+const formatAmout = (amount: number) => {
   // Positive values when money moves out of the account; negative values when money moves in.
   // For example, debit card purchases are positive; credit card payments, direct deposits, and refunds are negative.
-  if (amount > 0) {
-    return -amount;
+  return +(amount * -1);
+};
+
+const transformDescription = (transaction: Transaction) => {
+  const name = capitalCase(transaction.name);
+
+  if (
+    transaction?.original_description &&
+    transaction.original_description !== name
+  ) {
+    return capitalCase(transaction.original_description);
   }
 
-  return amount * -1;
+  if (transaction?.merchant_name && transaction?.merchant_name !== name) {
+    return transaction?.merchant_name;
+  }
+
+  return null;
 };
 
 export const transformTransaction = ({
   transaction,
-  teamId,
   bankAccountId,
+  teamId,
 }: TransformTransaction): BaseTransaction => {
   const method = mapTransactionMethod(transaction?.transaction_code);
+  const amount = formatAmout(+transaction.amount);
+  const name = capitalCase(transaction.name);
 
   return {
     date: transaction.date,
-    name: transaction.name,
-    description: transaction?.original_description
-      ? capitalCase(transaction.original_description)
-      : null,
+    name,
+    description: transformDescription(transaction),
     method,
     internal_id: `${teamId}_${transaction.transaction_id}`,
-    amount: transformToSignedAmount(transaction.amount),
+    amount,
+    team_id: teamId,
+    bank_account_id: bankAccountId,
     currency:
       transaction.iso_currency_code ||
       transaction.unofficial_currency_code ||
       "USD",
-    bank_account_id: bankAccountId,
-    category: mapTransactionCategory(transaction),
-    team_id: teamId,
+    category: mapTransactionCategory({ transaction, amount }),
     balance: null,
     status: transaction.pending ? "pending" : "posted",
   };
@@ -152,6 +177,7 @@ export const transformAccount = ({
   name,
   institution,
   balances,
+  type,
 }: TransformAccount): BaseAccount => {
   return {
     id: account_id,
@@ -160,5 +186,14 @@ export const transformAccount = ({
       balances.iso_currency_code || balances.unofficial_currency_code || "USD",
     institution,
     provider: "plaid",
+    type: getType(type),
   };
 };
+
+export const transformAccountBalance = (
+  balances?: TransformAccountBalance
+): BaseBalance => ({
+  currency:
+    balances?.iso_currency_code || balances?.unofficial_currency_code || "USD",
+  amount: balances?.available ?? 0,
+});

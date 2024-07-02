@@ -39,11 +39,17 @@ client.defineJob({
     });
 
     const { data, count } = await client
-      .from("decrypted_transactions")
+      .from("transactions")
       .select(
         `
-        *,
-        name:decrypted_name,
+        id,
+        date,
+        name,
+        amount,
+        note,
+        balance,
+        currency,
+        vat:calculated_vat,
         attachments:transaction_attachments(*)
       `,
         { count: "exact" }
@@ -105,20 +111,38 @@ client.defineJob({
       },
     });
 
-    const rows = data.map((transaction, idx) => [
-      idx + 1,
-      transaction.date,
-      transaction.name,
-      Intl.NumberFormat(locale, {
-        style: "currency",
-        currency: transaction.currency,
-      }).format(transaction.amount),
-      transaction?.attachments?.length > 0 ? "✔️" : "❌",
-      transaction?.note ?? "",
-    ]);
+    const rows = data
+      ?.sort((a, b) => a.date - b.date)
+      .map((transaction, idx) => [
+        idx + 1,
+        transaction.date,
+        transaction.name,
+        Intl.NumberFormat(locale, {
+          style: "currency",
+          currency: transaction.currency,
+        }).format(transaction.amount),
+        transaction?.vat
+          ? Intl.NumberFormat(locale, {
+              style: "currency",
+              currency: transaction.currency,
+            }).format(transaction?.vat)
+          : "",
+        transaction?.attachments?.length > 0 ? "✔️" : "❌",
+        transaction?.note ?? "",
+        transaction?.balance ?? "",
+      ]);
 
     const csv = await writeToString(rows, {
-      headers: ["ID", "Date", "Description", "Amount", "Attachment", "Note"],
+      headers: [
+        "ID",
+        "Date",
+        "Description",
+        "Amount",
+        "VAT",
+        "Attachment",
+        "Note",
+        "Balance",
+      ],
     });
 
     await generateExport.update("generate-export-csv-end", {

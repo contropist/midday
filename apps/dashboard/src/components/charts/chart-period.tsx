@@ -9,8 +9,16 @@ import { format } from "date-fns";
 import { useAction } from "next-safe-action/hooks";
 import { parseAsString, useQueryStates } from "nuqs";
 
-export function ChartPeriod({ defaultValue, disabled }) {
-  let placeholder;
+type Props = {
+  defaultValue: {
+    to: string;
+    from: string;
+  };
+  disabled?: string;
+};
+
+export function ChartPeriod({ defaultValue, disabled }: Props) {
+  let placeholder: string;
 
   const { execute } = useAction(changeChartPeriodAction);
 
@@ -31,9 +39,12 @@ export function ChartPeriod({ defaultValue, disabled }) {
   }
 
   if (state?.to) {
-    placeholder = `${placeholder} -${format(new Date(state.to), "LLL dd, y")} `;
+    placeholder = `${placeholder} - ${format(
+      new Date(state.to),
+      "LLL dd, y"
+    )} `;
   } else {
-    placeholder = `${placeholder} -${format(
+    placeholder = `${placeholder} - ${format(
       new Date(defaultValue.to),
       "LLL dd, y"
     )} `;
@@ -68,11 +79,11 @@ export function ChartPeriod({ defaultValue, disabled }) {
             variant="outline"
             className="justify-start text-left font-medium space-x-2"
           >
-            <span>{placeholder}</span>
+            <span className="line-clamp-1 text-ellipsis">{placeholder}</span>
             <Icons.ChevronDown />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[450px] mt-2 pt-1" align="end">
+        <PopoverContent className="w-screen md:w-[450px] mt-2 pt-1" align="end">
           <MonthRangePicker setDate={handleChangePeriod} date={date} />
         </PopoverContent>
       </Popover>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Policy | Midday",
+  title: "Policy",
+  description: "Privacy Policy",
 };
 
 export default function Page() {
@@ -276,7 +277,7 @@ export default function Page() {
             controls in place including the security of your data and other
             personal information.
           </p>
-
+          <br />
           <h2>Disclosure of Data</h2>
           <h3>Business Transaction</h3>
           <p className="leading-7 mt-8">
@@ -285,7 +286,7 @@ export default function Page() {
             before your Personal Data is transferred and becomes subject to a
             different Privacy Policy.
           </p>
-
+          <br />
           <h3>Disclosure for Law Enforcement</h3>
           <p className="leading-7 mt-8">
             Under certain circumstances, Midday Labs AB may be required to
@@ -293,7 +294,7 @@ export default function Page() {
             response to valid requests by public authorities (e.g. a court or a
             government agency).
           </p>
-
+          <br />
           <h3>Legal Requirements</h3>
           <p className="leading-7 mt-8">
             Midday Labs AB may disclose your Personal Data in the good faith
@@ -314,7 +315,7 @@ export default function Page() {
             </li>
             <li>To protect against legal liability</li>
           </ul>
-
+          <br />
           <h2>Security of Data</h2>
           <p className="leading-7 mt-8">
             The security of your data is important to us but remember that no
@@ -416,7 +417,7 @@ export default function Page() {
             please contact your local data protection authority in the European
             Economic Area (EEA).
           </p>
-
+          <br />
           <h2>Service Providers</h2>
           <p className="leading-7 mt-8">
             We may employ third party companies and individuals to facilitate
@@ -429,7 +430,7 @@ export default function Page() {
             perform these tasks on our behalf and are obligated not to disclose
             or use it for any other purpose.
           </p>
-
+          <br />
           <h3>Analytics</h3>
           <p className="leading-7 mt-8">
             We may use third-party Service Providers to monitor and analyse the
@@ -507,7 +508,7 @@ export default function Page() {
                 <strong>Apple Store In-App Payments</strong>
               </p>
               <p className="leading-7 mt-8">
-                Their Privacy Policy can be viewed at{" "}
+                Their Privacy Policy can be viewed at
                 <a
                   target="_blank"
                   rel="noreferrer"
@@ -522,7 +523,7 @@ export default function Page() {
                 <strong>Google Play In-App Payments</strong>
               </p>
               <p className="leading-7 mt-8">
-                Their Privacy Policy can be viewed at{" "}
+                Their Privacy Policy can be viewed at
                 <a
                   target="_blank"
                   rel="noreferrer"
@@ -560,7 +561,7 @@ export default function Page() {
             from children without verification of parental consent, we take
             steps to remove that information from our servers.
           </p>
-
+          <br />
           <h2>Changes to This Privacy Policy</h2>
           <p className="leading-7 mt-8">
             We may update our Privacy Policy from time to time. We will notify
@@ -576,7 +577,7 @@ export default function Page() {
             changes. Changes to this Privacy Policy are effective when they are
             posted on this page.
           </p>
-
+          <br />
           <h2>Contact Us</h2>
           <p className="leading-7 mt-8">
             If you have any questions about this Privacy Policy, please contact

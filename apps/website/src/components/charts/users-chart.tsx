@@ -1,28 +1,13 @@
-"use client";
-
 import { fetchStats } from "@/actions/fetch-stats";
-import { useEffect, useState } from "react";
 
-export function UsersChart() {
-  const [data, setData] = useState(0);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const { users, transactions } = await fetchStats();
-        setData(users);
-      } catch {}
-    }
-
-    fetchData();
-  }, []);
+export async function UsersChart() {
+  const { users } = await fetchStats();
 
   return (
-    <div className="flex border flex-col items-center justify-center border-border bg-background rounded-xl px-6 pt-8 pb-6 space-y-4">
-      <h2 className="text-2xl">Private beta users</h2>
+    <div className="flex border flex-col items-center justify-center border-border bg-background px-6 pt-8 pb-6 space-y-4">
+      <h2 className="text-2xl">Customers</h2>
       <p className="text-[#878787] text-sm text-center">
-        This is how many we’ve let into the system to start using it, joined the
-        community and started to form Midday together with us.
+        This is the number of customers currently using Midday.
       </p>
 
       <div className="flex items-center space-x-4">
@@ -32,7 +17,7 @@ export function UsersChart() {
         </span>
 
         <span className="mt-auto font-mono text-[80px] md:text-[122px]">
-          {data}
+          {users}
         </span>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { env } from "@/env.mjs";
 import InviteEmail from "@midday/email/emails/invite";
 import { getI18n } from "@midday/email/locales";
 import { LogEvents } from "@midday/events/events";
-import { logsnag } from "@midday/events/server";
+import { setupAnalytics } from "@midday/events/server";
 import { getUser } from "@midday/supabase/cached-queries";
 import { createClient } from "@midday/supabase/server";
 import { renderAsync } from "@react-email/components";
@@ -81,10 +81,13 @@ export const inviteTeamMembersAction = action(
       redirect(redirectTo);
     }
 
-    logsnag.track({
+    const analytics = await setupAnalytics({
+      userId: user?.data?.id,
+      fullName: user?.data?.full_name,
+    });
+
+    analytics.track({
       event: LogEvents.InviteTeamMembers.name,
-      icon: LogEvents.InviteTeamMembers.icon,
-      user_id: user.data.id,
       channel: LogEvents.InviteTeamMembers.channel,
     });
   }

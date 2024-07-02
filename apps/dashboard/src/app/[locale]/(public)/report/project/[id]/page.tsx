@@ -5,6 +5,7 @@ import { Button } from "@midday/ui/button";
 import { endOfMonth, formatISO, startOfMonth, subMonths } from "date-fns";
 import type { Metadata } from "next";
 import Link from "next/link";
+
 import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
@@ -41,7 +42,9 @@ export default async function ProjectReport({ params, searchParams }) {
 
   const { data: reportData, error } = await supabase
     .from("tracker_reports")
-    .select("*, project:project_id(id, name)")
+    .select(
+      "*, project:project_id(id, name), user:created_by(week_starts_on_monday)"
+    )
     .eq("id", params.id)
     .single();
 
@@ -68,7 +71,7 @@ export default async function ProjectReport({ params, searchParams }) {
           <span className="text-[#878787]">Time Report</span>
         </div>
 
-        <Link href="/" className="absolute right-4">
+        <Link href="/" className="absolute right-4" prefetch>
           <Button variant="outline">Sign up</Button>
         </Link>
       </div>
@@ -83,6 +86,7 @@ export default async function ProjectReport({ params, searchParams }) {
             end={end}
             numberOfMonths={numberOfMonths}
             projectId={reportData.project.id}
+            weekStartsOn={reportData?.user?.week_starts_on_monday && 1}
           />
         </div>
       </div>

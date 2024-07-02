@@ -2,16 +2,33 @@
 
 exports[`Transform pending transaction 1`] = `
 {
-  "amount": 83.62,
+  "amount": -83.62,
   "balance": null,
   "bank_account_id": "123",
-  "category": "income",
+  "category": null,
   "currency": "USD",
   "date": "2024-03-05",
-  "description": null,
+  "description": "Bank Of Many",
   "internal_id": "123_txn_os41r5u90e29shubl2000",
   "method": "other",
   "name": "Online Check Deposit",
+  "status": "pending",
+  "team_id": "123",
+}
+`;
+
+exports[`Transform pending transaction 2`] = `
+{
+  "amount": -29,
+  "balance": null,
+  "bank_account_id": "123",
+  "category": null,
+  "currency": "USD",
+  "date": "2024-03-05",
+  "description": "Bank Of Many",
+  "internal_id": "123_txn_os41r5u90e29shubl2000",
+  "method": "other",
+  "name": "Technology",
   "status": "pending",
   "team_id": "123",
 }
@@ -36,10 +53,10 @@ exports[`Transform card payment transaction 1`] = `
 
 exports[`Transform income transaction 1`] = `
 {
-  "amount": -20.21,
+  "amount": 1000000,
   "balance": "83296.40",
   "bank_account_id": "123",
-  "category": null,
+  "category": "income",
   "currency": "USD",
   "date": "2024-03-03",
   "description": null,
@@ -59,7 +76,7 @@ exports[`Transform type transfer 1`] = `
   "category": "transfer",
   "currency": "USD",
   "date": "2024-01-27",
-  "description": null,
+  "description": "Yourself",
   "internal_id": "123_txn_os41r5ua0e29shubl2001",
   "method": "transfer",
   "name": "Recurring Transfer To Savings",
@@ -80,5 +97,13 @@ exports[`Transform accounts 1`] = `
   },
   "name": "Platinum Card",
   "provider": "teller",
+  "type": "credit",
+}
+`;
+
+exports[`Transform account balance 1`] = `
+{
+  "amount": 2011100,
+  "currency": "USD",
 }
 `;

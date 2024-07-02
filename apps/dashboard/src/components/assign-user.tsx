@@ -1,5 +1,3 @@
-"use client";
-
 import { createClient } from "@midday/supabase/client";
 import {
   getCurrentUserTeamQuery,
@@ -16,10 +14,22 @@ import { Skeleton } from "@midday/ui/skeleton";
 import { useEffect, useState } from "react";
 import { AssignedUser } from "./assigned-user";
 
-export function AssignUser({ selectedId, isLoading, onSelect }) {
-  const [value, setValue] = useState();
+type User = {
+  id: string;
+  avatar_url?: string | null;
+  full_name: string | null;
+};
+
+type Props = {
+  selectedId: string;
+  isLoading: boolean;
+  onSelect: (user?: User) => void;
+};
+
+export function AssignUser({ selectedId, isLoading, onSelect }: Props) {
+  const [value, setValue] = useState<string>();
   const supabase = createClient();
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     setValue(selectedId);
@@ -28,12 +38,15 @@ export function AssignUser({ selectedId, isLoading, onSelect }) {
   useEffect(() => {
     async function getUsers() {
       const { data: userData } = await getCurrentUserTeamQuery(supabase);
-      const { data: membersData } = await getTeamMembersQuery(
-        supabase,
-        userData?.team_id
-      );
 
-      setUsers(membersData);
+      if (userData?.team_id) {
+        const { data: membersData } = await getTeamMembersQuery(
+          supabase,
+          userData.team_id
+        );
+
+        setUsers(membersData?.map(({ user }) => user));
+      }
     }
 
     getUsers();
@@ -42,11 +55,14 @@ export function AssignUser({ selectedId, isLoading, onSelect }) {
   return (
     <div className="relative">
       {isLoading ? (
-        <div className="h-[36px] border rounded-md">
-          <Skeleton className="h-[14px] w-[60%] rounded-sm absolute left-3 top-[39px]" />
+        <div className="h-[36px] border">
+          <Skeleton className="h-[14px] w-[60%] absolute left-3 top-[39px]" />
         </div>
       ) : (
-        <Select value={value} onValueChange={onSelect}>
+        <Select
+          value={value}
+          onValueChange={(id) => onSelect(users.find((user) => user.id === id))}
+        >
           <SelectTrigger
             id="assign"
             className="line-clamp-1 truncate"
@@ -56,11 +72,16 @@ export function AssignUser({ selectedId, isLoading, onSelect }) {
           </SelectTrigger>
 
           <SelectContent className="overflow-y-auto max-h-[200px]">
-            {users?.map(({ user }) => (
-              <SelectItem key={user?.id} value={user?.id}>
-                <AssignedUser user={user} />
-              </SelectItem>
-            ))}
+            {users?.map((user) => {
+              return (
+                <SelectItem key={user?.id} value={user?.id}>
+                  <AssignedUser
+                    fullName={user?.full_name}
+                    avatarUrl={user?.avatar_url}
+                  />
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       )}

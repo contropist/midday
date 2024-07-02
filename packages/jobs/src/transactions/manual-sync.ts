@@ -25,7 +25,7 @@ client.defineJob({
     const { data: account } = await supabase
       .from("bank_accounts")
       .select(
-        "id, team_id, account_id, bank_connection:bank_connection_id(provider, access_token)"
+        "id, team_id, account_id, type, bank_connection:bank_connection_id(provider, access_token)"
       )
       .eq("id", payload.accountId)
       .eq("enabled", true)
@@ -47,19 +47,24 @@ client.defineJob({
       accountId: account.account_id,
       accessToken: access_token,
       bankAccountId: account.id,
+      accountType: account.type,
     });
+
+    const formatted = transactions.map(({ category, ...rest }) => ({
+      ...rest,
+      category_slug: category,
+    }));
 
     // NOTE: We will get all the transactions at once for each account so
     // we need to guard against massive payloads
     const promises = await processPromisesBatch(
-      transactions,
+      formatted,
       BATCH_LIMIT,
       async (batch) => {
         return supabase
           .from("transactions")
           .upsert(batch, {
             onConflict: "internal_id",
-            ignoreDuplicates: true,
           })
           .select();
       }
@@ -72,11 +77,17 @@ client.defineJob({
       throw Error("Something went wrong");
     }
 
+    const balance = await api.getAccountBalance({
+      accountId: account.account_id,
+      accessToken: account.bank_connection?.access_token,
+    });
+
     // Update bank account last_accessed
     await io.supabase.client
       .from("bank_accounts")
       .update({
         last_accessed: new Date().toISOString(),
+        balance: balance?.amount,
       })
       .eq("id", account.id);
 

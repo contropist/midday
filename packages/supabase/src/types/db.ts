@@ -12,39 +12,48 @@ export type Database = {
       bank_accounts: {
         Row: {
           account_id: string;
+          balance: number | null;
           bank_connection_id: string | null;
           created_at: string;
           created_by: string;
-          currency: string;
+          currency: string | null;
           enabled: boolean;
           id: string;
           last_accessed: string | null;
+          manual: boolean | null;
           name: string | null;
           team_id: string;
+          type: Database["public"]["Enums"]["account_type"] | null;
         };
         Insert: {
           account_id: string;
+          balance?: number | null;
           bank_connection_id?: string | null;
           created_at?: string;
           created_by: string;
-          currency: string;
+          currency?: string | null;
           enabled?: boolean;
           id?: string;
           last_accessed?: string | null;
+          manual?: boolean | null;
           name?: string | null;
           team_id: string;
+          type?: Database["public"]["Enums"]["account_type"] | null;
         };
         Update: {
           account_id?: string;
+          balance?: number | null;
           bank_connection_id?: string | null;
           created_at?: string;
           created_by?: string;
-          currency?: string;
+          currency?: string | null;
           enabled?: boolean;
           id?: string;
           last_accessed?: string | null;
+          manual?: boolean | null;
           name?: string | null;
           team_id?: string;
+          type?: Database["public"]["Enums"]["account_type"] | null;
         };
         Relationships: [
           {
@@ -55,13 +64,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "bank_accounts_bank_connection_id_fkey";
-            columns: ["bank_connection_id"];
-            isOneToOne: false;
-            referencedRelation: "decrypted_bank_connections";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "bank_accounts_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
@@ -69,7 +71,7 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "bank_accounts_team_id_fkey";
+            foreignKeyName: "public_bank_accounts_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
@@ -127,72 +129,67 @@ export type Database = {
       inbox: {
         Row: {
           amount: number | null;
-          archived: boolean | null;
           attachment_id: string | null;
           content_type: string | null;
           created_at: string;
           currency: string | null;
+          display_name: string | null;
           due_date: string | null;
-          email: string | null;
           file_name: string | null;
           file_path: string[] | null;
           forwarded_to: string | null;
-          html: string | null;
+          fts: unknown | null;
           id: string;
-          issuer_name: string | null;
-          name: string | null;
-          read: boolean | null;
+          meta: Json | null;
+          reference_id: string | null;
           size: number | null;
-          subject: string | null;
+          status: Database["public"]["Enums"]["inbox_status"] | null;
           team_id: string | null;
           transaction_id: string | null;
-          trash: boolean | null;
+          website: string | null;
+          inbox_amount_text: string | null;
         };
         Insert: {
           amount?: number | null;
-          archived?: boolean | null;
           attachment_id?: string | null;
           content_type?: string | null;
           created_at?: string;
           currency?: string | null;
+          display_name?: string | null;
           due_date?: string | null;
-          email?: string | null;
           file_name?: string | null;
           file_path?: string[] | null;
           forwarded_to?: string | null;
-          html?: string | null;
+          fts?: unknown | null;
           id?: string;
-          issuer_name?: string | null;
-          name?: string | null;
-          read?: boolean | null;
+          meta?: Json | null;
+          reference_id?: string | null;
           size?: number | null;
-          subject?: string | null;
+          status?: Database["public"]["Enums"]["inbox_status"] | null;
           team_id?: string | null;
           transaction_id?: string | null;
-          trash?: boolean | null;
+          website?: string | null;
         };
         Update: {
           amount?: number | null;
-          archived?: boolean | null;
           attachment_id?: string | null;
           content_type?: string | null;
           created_at?: string;
           currency?: string | null;
+          display_name?: string | null;
           due_date?: string | null;
-          email?: string | null;
           file_name?: string | null;
           file_path?: string[] | null;
           forwarded_to?: string | null;
-          html?: string | null;
+          fts?: unknown | null;
           id?: string;
-          issuer_name?: string | null;
-          name?: string | null;
-          read?: boolean | null;
+          meta?: Json | null;
+          reference_id?: string | null;
           size?: number | null;
-          subject?: string | null;
+          status?: Database["public"]["Enums"]["inbox_status"] | null;
           team_id?: string | null;
           transaction_id?: string | null;
-          trash?: boolean | null;
+          website?: string | null;
         };
         Relationships: [
           {
@@ -203,17 +200,10 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "inbox_team_id_fkey";
+            foreignKeyName: "public_inbox_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_inbox_transaction_id_fkey";
-            columns: ["transaction_id"];
-            isOneToOne: false;
-            referencedRelation: "decrypted_transactions";
             referencedColumns: ["id"];
           },
           {
@@ -228,6 +218,8 @@ export type Database = {
       reports: {
         Row: {
           created_at: string;
+          created_by: string | null;
+          currency: string | null;
           expire_at: string | null;
           from: string | null;
           id: string;
@@ -239,6 +231,8 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          created_by?: string | null;
+          currency?: string | null;
           expire_at?: string | null;
           from?: string | null;
           id?: string;
@@ -250,6 +244,8 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          created_by?: string | null;
+          currency?: string | null;
           expire_at?: string | null;
           from?: string | null;
           id?: string;
@@ -260,6 +256,13 @@ export type Database = {
           type?: Database["public"]["Enums"]["reportTypes"] | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "public_reports_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "reports_team_id_fkey";
             columns: ["team_id"];
@@ -275,6 +278,7 @@ export type Database = {
           email: string | null;
           id: string;
           inbox_email: string | null;
+          inbox_forwarding: boolean | null;
           inbox_id: string | null;
           logo_url: string | null;
           name: string | null;
@@ -284,6 +288,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           inbox_email?: string | null;
+          inbox_forwarding?: boolean | null;
           inbox_id?: string | null;
           logo_url?: string | null;
           name?: string | null;
@@ -293,6 +298,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           inbox_email?: string | null;
+          inbox_forwarding?: boolean | null;
           inbox_id?: string | null;
           logo_url?: string | null;
           name?: string | null;
@@ -422,6 +428,7 @@ export type Database = {
       tracker_reports: {
         Row: {
           created_at: string;
+          created_by: string | null;
           id: string;
           link_id: string | null;
           project_id: string | null;
@@ -430,6 +437,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          created_by?: string | null;
           id?: string;
           link_id?: string | null;
           project_id?: string | null;
@@ -438,6 +446,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          created_by?: string | null;
           id?: string;
           link_id?: string | null;
           project_id?: string | null;
@@ -446,6 +455,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "public_tracker_reports_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "public_tracker_reports_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
@@ -453,7 +469,7 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "public_tracker_reports_team_id_fkey";
+            foreignKeyName: "tracker_reports_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
@@ -494,10 +510,10 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_transaction_attachments_transaction_id_fkey";
-            columns: ["transaction_id"];
+            foreignKeyName: "public_transaction_attachments_team_id_fkey";
+            columns: ["team_id"];
             isOneToOne: false;
-            referencedRelation: "decrypted_transactions";
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           },
           {
@@ -506,9 +522,49 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "transactions";
             referencedColumns: ["id"];
-          },
+          }
+        ];
+      };
+      transaction_categories: {
+        Row: {
+          color: string | null;
+          created_at: string | null;
+          description: string | null;
+          embedding: string | null;
+          id: string;
+          name: string;
+          slug: string;
+          system: boolean | null;
+          team_id: string;
+          vat: number | null;
+        };
+        Insert: {
+          color?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          embedding?: string | null;
+          id?: string;
+          name: string;
+          slug: string;
+          system?: boolean | null;
+          team_id?: string;
+          vat?: number | null;
+        };
+        Update: {
+          color?: string | null;
+          created_at?: string | null;
+          description?: string | null;
+          embedding?: string | null;
+          id?: string;
+          name?: string;
+          slug?: string;
+          system?: boolean | null;
+          team_id?: string;
+          vat?: number | null;
+        };
+        Relationships: [
           {
-            foreignKeyName: "transaction_attachments_team_id_fkey";
+            foreignKeyName: "transaction_categories_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
@@ -518,36 +574,42 @@ export type Database = {
       };
       transaction_enrichments: {
         Row: {
-          category: Database["public"]["Enums"]["transactionCategories"] | null;
+          category_slug: string | null;
           created_at: string;
-          created_by: string | null;
           id: string;
           name: string | null;
+          system: boolean | null;
+          team_id: string | null;
         };
         Insert: {
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
+          category_slug?: string | null;
           created_at?: string;
-          created_by?: string | null;
           id?: string;
           name?: string | null;
+          system?: boolean | null;
+          team_id?: string | null;
         };
         Update: {
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
+          category_slug?: string | null;
           created_at?: string;
-          created_by?: string | null;
           id?: string;
           name?: string | null;
+          system?: boolean | null;
+          team_id?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "transaction_enrichments_created_by_fkey";
-            columns: ["created_by"];
+            foreignKeyName: "transaction_enrichments_category_slug_team_id_fkey";
+            columns: ["category_slug", "team_id"];
             isOneToOne: false;
-            referencedRelation: "users";
+            referencedRelation: "transaction_categories";
+            referencedColumns: ["slug", "team_id"];
+          },
+          {
+            foreignKeyName: "transaction_enrichments_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
             referencedColumns: ["id"];
           }
         ];
@@ -559,6 +621,7 @@ export type Database = {
           balance: number | null;
           bank_account_id: string | null;
           category: Database["public"]["Enums"]["transactionCategories"] | null;
+          category_slug: string | null;
           created_at: string;
           currency: string;
           currency_rate: number | null;
@@ -571,9 +634,11 @@ export type Database = {
           method: Database["public"]["Enums"]["transactionMethods"];
           name: string;
           note: string | null;
-          order: number;
           status: Database["public"]["Enums"]["transactionStatus"] | null;
           team_id: string;
+          amount_text: string | null;
+          calculated_vat: number | null;
+          is_fulfilled: boolean | null;
         };
         Insert: {
           amount: number;
@@ -583,6 +648,7 @@ export type Database = {
           category?:
             | Database["public"]["Enums"]["transactionCategories"]
             | null;
+          category_slug?: string | null;
           created_at?: string;
           currency: string;
           currency_rate?: number | null;
@@ -595,7 +661,6 @@ export type Database = {
           method: Database["public"]["Enums"]["transactionMethods"];
           name: string;
           note?: string | null;
-          order?: number;
           status?: Database["public"]["Enums"]["transactionStatus"] | null;
           team_id: string;
         };
@@ -607,6 +672,7 @@ export type Database = {
           category?:
             | Database["public"]["Enums"]["transactionCategories"]
             | null;
+          category_slug?: string | null;
           created_at?: string;
           currency?: string;
           currency_rate?: number | null;
@@ -619,7 +685,6 @@ export type Database = {
           method?: Database["public"]["Enums"]["transactionMethods"];
           name?: string;
           note?: string | null;
-          order?: number;
           status?: Database["public"]["Enums"]["transactionStatus"] | null;
           team_id?: string;
         };
@@ -632,25 +697,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "public_transactions_bank_account_id_fkey";
+            foreignKeyName: "public_transactions_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "transactions_bank_account_id_fkey";
             columns: ["bank_account_id"];
             isOneToOne: false;
             referencedRelation: "bank_accounts";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "public_transactions_bank_account_id_fkey";
-            columns: ["bank_account_id"];
+            foreignKeyName: "transactions_category_slug_team_id_fkey";
+            columns: ["category_slug", "team_id"];
             isOneToOne: false;
-            referencedRelation: "decrypted_bank_accounts";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_transactions_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
+            referencedRelation: "transaction_categories";
+            referencedColumns: ["slug", "team_id"];
           }
         ];
       };
@@ -684,17 +749,17 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "public_user_invites_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "user_invites_invited_by_fkey";
             columns: ["invited_by"];
             isOneToOne: false;
             referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "user_invites_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
             referencedColumns: ["id"];
           }
         ];
@@ -708,6 +773,7 @@ export type Database = {
           id: string;
           locale: string | null;
           team_id: string | null;
+          week_starts_on_monday: boolean | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -717,6 +783,7 @@ export type Database = {
           id: string;
           locale?: string | null;
           team_id?: string | null;
+          week_starts_on_monday?: boolean | null;
         };
         Update: {
           avatar_url?: string | null;
@@ -726,6 +793,7 @@ export type Database = {
           id?: string;
           locale?: string | null;
           team_id?: string | null;
+          week_starts_on_monday?: boolean | null;
         };
         Relationships: [
           {
@@ -785,392 +853,30 @@ export type Database = {
       };
     };
     Views: {
-      decrypted_bank_accounts: {
-        Row: {
-          account_id: string | null;
-          bank_connection_id: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          currency: string | null;
-          decrypted_name: string | null;
-          enabled: boolean | null;
-          id: string | null;
-          last_accessed: string | null;
-          name: string | null;
-          team_id: string | null;
-        };
-        Insert: {
-          account_id?: string | null;
-          bank_connection_id?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          currency?: string | null;
-          decrypted_name?: never;
-          enabled?: boolean | null;
-          id?: string | null;
-          last_accessed?: string | null;
-          name?: string | null;
-          team_id?: string | null;
-        };
-        Update: {
-          account_id?: string | null;
-          bank_connection_id?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          currency?: string | null;
-          decrypted_name?: never;
-          enabled?: boolean | null;
-          id?: string | null;
-          last_accessed?: string | null;
-          name?: string | null;
-          team_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "bank_accounts_bank_connection_id_fkey";
-            columns: ["bank_connection_id"];
-            isOneToOne: false;
-            referencedRelation: "bank_connections";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "bank_accounts_bank_connection_id_fkey";
-            columns: ["bank_connection_id"];
-            isOneToOne: false;
-            referencedRelation: "decrypted_bank_connections";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "bank_accounts_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "bank_accounts_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      decrypted_bank_connections: {
-        Row: {
-          access_token: string | null;
-          created_at: string | null;
-          decrypted_name: string | null;
-          enrollment_id: string | null;
-          expires_at: string | null;
-          id: string | null;
-          institution_id: string | null;
-          logo_url: string | null;
-          name: string | null;
-          provider: Database["public"]["Enums"]["bank_providers"] | null;
-          team_id: string | null;
-        };
-        Insert: {
-          access_token?: string | null;
-          created_at?: string | null;
-          decrypted_name?: never;
-          enrollment_id?: string | null;
-          expires_at?: string | null;
-          id?: string | null;
-          institution_id?: string | null;
-          logo_url?: string | null;
-          name?: string | null;
-          provider?: Database["public"]["Enums"]["bank_providers"] | null;
-          team_id?: string | null;
-        };
-        Update: {
-          access_token?: string | null;
-          created_at?: string | null;
-          decrypted_name?: never;
-          enrollment_id?: string | null;
-          expires_at?: string | null;
-          id?: string | null;
-          institution_id?: string | null;
-          logo_url?: string | null;
-          name?: string | null;
-          provider?: Database["public"]["Enums"]["bank_providers"] | null;
-          team_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "bank_connections_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      decrypted_inbox: {
-        Row: {
-          amount: number | null;
-          archived: boolean | null;
-          attachment_id: string | null;
-          content_type: string | null;
-          created_at: string | null;
-          currency: string | null;
-          decrypted_html: string | null;
-          decrypted_issuer_name: string | null;
-          decrypted_name: string | null;
-          decrypted_subject: string | null;
-          due_date: string | null;
-          email: string | null;
-          file_name: string | null;
-          file_path: string[] | null;
-          forwarded_to: string | null;
-          html: string | null;
-          id: string | null;
-          issuer_name: string | null;
-          name: string | null;
-          read: boolean | null;
-          size: number | null;
-          subject: string | null;
-          team_id: string | null;
-          transaction_id: string | null;
-          trash: boolean | null;
-        };
-        Insert: {
-          amount?: number | null;
-          archived?: boolean | null;
-          attachment_id?: string | null;
-          content_type?: string | null;
-          created_at?: string | null;
-          currency?: string | null;
-          decrypted_html?: never;
-          decrypted_issuer_name?: never;
-          decrypted_name?: never;
-          decrypted_subject?: never;
-          due_date?: string | null;
-          email?: string | null;
-          file_name?: string | null;
-          file_path?: string[] | null;
-          forwarded_to?: string | null;
-          html?: string | null;
-          id?: string | null;
-          issuer_name?: string | null;
-          name?: string | null;
-          read?: boolean | null;
-          size?: number | null;
-          subject?: string | null;
-          team_id?: string | null;
-          transaction_id?: string | null;
-          trash?: boolean | null;
-        };
-        Update: {
-          amount?: number | null;
-          archived?: boolean | null;
-          attachment_id?: string | null;
-          content_type?: string | null;
-          created_at?: string | null;
-          currency?: string | null;
-          decrypted_html?: never;
-          decrypted_issuer_name?: never;
-          decrypted_name?: never;
-          decrypted_subject?: never;
-          due_date?: string | null;
-          email?: string | null;
-          file_name?: string | null;
-          file_path?: string[] | null;
-          forwarded_to?: string | null;
-          html?: string | null;
-          id?: string | null;
-          issuer_name?: string | null;
-          name?: string | null;
-          read?: boolean | null;
-          size?: number | null;
-          subject?: string | null;
-          team_id?: string | null;
-          transaction_id?: string | null;
-          trash?: boolean | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "inbox_attachment_id_fkey";
-            columns: ["attachment_id"];
-            isOneToOne: false;
-            referencedRelation: "transaction_attachments";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "inbox_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_inbox_transaction_id_fkey";
-            columns: ["transaction_id"];
-            isOneToOne: false;
-            referencedRelation: "transactions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_inbox_transaction_id_fkey";
-            columns: ["transaction_id"];
-            isOneToOne: false;
-            referencedRelation: "decrypted_transactions";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      decrypted_transaction_enrichments: {
-        Row: {
-          category: Database["public"]["Enums"]["transactionCategories"] | null;
-          created_at: string | null;
-          created_by: string | null;
-          decrypted_name: string | null;
-          id: string | null;
-          name: string | null;
-        };
-        Insert: {
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          decrypted_name?: never;
-          id?: string | null;
-          name?: string | null;
-        };
-        Update: {
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          decrypted_name?: never;
-          id?: string | null;
-          name?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "transaction_enrichments_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-      decrypted_transactions: {
-        Row: {
-          amount: number | null;
-          assigned_id: string | null;
-          balance: number | null;
-          bank_account_id: string | null;
-          category: Database["public"]["Enums"]["transactionCategories"] | null;
-          created_at: string | null;
-          currency: string | null;
-          currency_rate: number | null;
-          currency_source: string | null;
-          date: string | null;
-          decrypted_description: string | null;
-          decrypted_name: string | null;
-          description: string | null;
-          id: string | null;
-          internal_id: string | null;
-          manual: boolean | null;
-          method: Database["public"]["Enums"]["transactionMethods"] | null;
-          name: string | null;
-          note: string | null;
-          order: number | null;
-          status: Database["public"]["Enums"]["transactionStatus"] | null;
-          team_id: string | null;
-        };
-        Insert: {
-          amount?: number | null;
-          assigned_id?: string | null;
-          balance?: number | null;
-          bank_account_id?: string | null;
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
-          created_at?: string | null;
-          currency?: string | null;
-          currency_rate?: number | null;
-          currency_source?: string | null;
-          date?: string | null;
-          decrypted_description?: never;
-          decrypted_name?: never;
-          description?: string | null;
-          id?: string | null;
-          internal_id?: string | null;
-          manual?: boolean | null;
-          method?: Database["public"]["Enums"]["transactionMethods"] | null;
-          name?: string | null;
-          note?: string | null;
-          order?: number | null;
-          status?: Database["public"]["Enums"]["transactionStatus"] | null;
-          team_id?: string | null;
-        };
-        Update: {
-          amount?: number | null;
-          assigned_id?: string | null;
-          balance?: number | null;
-          bank_account_id?: string | null;
-          category?:
-            | Database["public"]["Enums"]["transactionCategories"]
-            | null;
-          created_at?: string | null;
-          currency?: string | null;
-          currency_rate?: number | null;
-          currency_source?: string | null;
-          date?: string | null;
-          decrypted_description?: never;
-          decrypted_name?: never;
-          description?: string | null;
-          id?: string | null;
-          internal_id?: string | null;
-          manual?: boolean | null;
-          method?: Database["public"]["Enums"]["transactionMethods"] | null;
-          name?: string | null;
-          note?: string | null;
-          order?: number | null;
-          status?: Database["public"]["Enums"]["transactionStatus"] | null;
-          team_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "public_transactions_assigned_id_fkey";
-            columns: ["assigned_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_transactions_bank_account_id_fkey";
-            columns: ["bank_account_id"];
-            isOneToOne: false;
-            referencedRelation: "bank_accounts";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_transactions_bank_account_id_fkey";
-            columns: ["bank_account_id"];
-            isOneToOne: false;
-            referencedRelation: "decrypted_bank_accounts";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "public_transactions_team_id_fkey";
-            columns: ["team_id"];
-            isOneToOne: false;
-            referencedRelation: "teams";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+      [_ in never]: never;
     };
     Functions: {
       amount_text: {
         Args: {
           "": unknown;
+        };
+        Returns: string;
+      };
+      calculated_vat: {
+        Args: {
+          "": unknown;
+        };
+        Returns: number;
+      };
+      create_team: {
+        Args: {
+          name: string;
+        };
+        Returns: string;
+      };
+      extract_product_names: {
+        Args: {
+          products_json: Json;
         };
         Returns: string;
       };
@@ -1185,6 +891,129 @@ export type Database = {
           size: number;
         };
         Returns: string;
+      };
+      generate_inbox_fts:
+        | {
+            Args: {
+              display_name: string;
+              products_json: Json;
+            };
+            Returns: unknown;
+          }
+        | {
+            Args: {
+              display_name_text: string;
+              product_names: string;
+            };
+            Returns: unknown;
+          }
+        | {
+            Args: {
+              display_name_text: string;
+              product_names: string;
+              amount: number;
+              due_date: string;
+            };
+            Returns: unknown;
+          };
+      get_bank_account_currencies: {
+        Args: {
+          team_id: string;
+        };
+        Returns: {
+          currency: string;
+        }[];
+      };
+      get_burn_rate: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency: string;
+        };
+        Returns: {
+          date: string;
+          value: number;
+        }[];
+      };
+      get_current_burn_rate: {
+        Args: {
+          team_id: string;
+          currency: string;
+        };
+        Returns: number;
+      };
+      get_profit: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency: string;
+        };
+        Returns: {
+          date: string;
+          value: number;
+        }[];
+      };
+      get_revenue: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency: string;
+        };
+        Returns: {
+          date: string;
+          value: number;
+        }[];
+      };
+      get_runway: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency: string;
+        };
+        Returns: number;
+      };
+      get_spending: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency_target: string;
+        };
+        Returns: {
+          name: string;
+          slug: string;
+          amount: number;
+          currency: string;
+          color: string;
+          percentage: number;
+        }[];
+      };
+      get_spending_v2: {
+        Args: {
+          team_id: string;
+          date_from: string;
+          date_to: string;
+          currency_target: string;
+        };
+        Returns: {
+          name: string;
+          slug: string;
+          amount: number;
+          currency: string;
+          color: string;
+          percentage: number;
+        }[];
+      };
+      get_total_balance: {
+        Args: {
+          team_id: string;
+          currency: string;
+        };
+        Returns: number;
       };
       gtrgm_compress: {
         Args: {
@@ -1215,6 +1044,18 @@ export type Database = {
           "": unknown;
         };
         Returns: unknown;
+      };
+      inbox_amount_text: {
+        Args: {
+          "": unknown;
+        };
+        Returns: string;
+      };
+      is_fulfilled: {
+        Args: {
+          "": unknown;
+        };
+        Returns: boolean;
       };
       nanoid: {
         Args: {
@@ -1268,7 +1109,13 @@ export type Database = {
         Args: {
           "": string;
         };
-        Returns: unknown;
+        Returns: string[];
+      };
+      slugify: {
+        Args: {
+          value: string;
+        };
+        Returns: string;
       };
       total_duration: {
         Args: {
@@ -1276,36 +1123,30 @@ export type Database = {
         };
         Returns: number;
       };
-      upsert_bank_connection: {
+      unaccent: {
         Args: {
-          b_id: string;
-          b_name: string;
-          b_institution_id: string;
-          b_logo_url: string;
-          b_team_id: string;
-          b_provider?: Database["public"]["Enums"]["bank_providers"];
-          b_access_token?: string;
-          b_enrollment_id?: string;
-          b_expires_at?: string;
+          "": string;
         };
-        Returns: {
-          access_token: string | null;
-          created_at: string;
-          enrollment_id: string | null;
-          expires_at: string | null;
-          id: string;
-          institution_id: string;
-          logo_url: string | null;
-          name: string;
-          provider: Database["public"]["Enums"]["bank_providers"] | null;
-          team_id: string;
+        Returns: string;
+      };
+      unaccent_init: {
+        Args: {
+          "": unknown;
         };
+        Returns: unknown;
       };
     };
     Enums: {
+      account_type:
+        | "depository"
+        | "credit"
+        | "other_asset"
+        | "loan"
+        | "other_liability";
       bank_providers: "gocardless" | "plaid" | "teller";
       bankProviders: "gocardless" | "plaid" | "teller";
-      reportTypes: "profit" | "revenue";
+      inbox_status: "processing" | "pending" | "archived" | "new" | "deleted";
+      reportTypes: "profit" | "revenue" | "burn_rate";
       teamRoles: "owner" | "member";
       trackerStatus: "in_progress" | "completed";
       transactionCategories:
@@ -1337,17 +1178,22 @@ export type Database = {
         | "deposit"
         | "wire"
         | "fee";
-      transactionStatus: "posted" | "pending" | "excluded";
+      transactionStatus: "posted" | "pending" | "excluded" | "completed";
     };
     CompositeTypes: {
-      [_ in never]: never;
+      metrics_record: {
+        date: string | null;
+        value: number | null;
+      };
     };
   };
 };
 
+type PublicSchema = Database[Extract<keyof Database, "public">];
+
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
@@ -1360,10 +1206,10 @@ export type Tables<
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
-      Database["public"]["Views"])
-  ? (Database["public"]["Tables"] &
-      Database["public"]["Views"])[PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+      PublicSchema["Views"])
+  ? (PublicSchema["Tables"] &
+      PublicSchema["Views"])[PublicTableNameOrOptions] extends {
       Row: infer R;
     }
     ? R
@@ -1372,7 +1218,7 @@ export type Tables<
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof Database["public"]["Tables"]
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
@@ -1383,8 +1229,8 @@ export type TablesInsert<
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
       Insert: infer I;
     }
     ? I
@@ -1393,7 +1239,7 @@ export type TablesInsert<
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof Database["public"]["Tables"]
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
@@ -1404,8 +1250,8 @@ export type TablesUpdate<
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
       Update: infer U;
     }
     ? U
@@ -1414,13 +1260,13 @@ export type TablesUpdate<
 
 export type Enums<
   PublicEnumNameOrOptions extends
-    | keyof Database["public"]["Enums"]
+    | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
     ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
-  ? Database["public"]["Enums"][PublicEnumNameOrOptions]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+  ? PublicSchema["Enums"][PublicEnumNameOrOptions]
   : never;

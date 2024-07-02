@@ -31,16 +31,23 @@ import { z } from "zod";
 
 const formSchema = z.object({
   name: z.string().min(1, {
-    message: "Bank Account Name must be at least 1 characters.",
+    message: "Account Name must be at least 1 characters.",
   }),
 });
+
+type Props = {
+  id: string;
+  onOpenChange: (isOpen: boolean) => void;
+  isOpen: boolean;
+  defaultValue: string;
+};
 
 export function EditBankAccountModal({
   id,
   onOpenChange,
   isOpen,
   defaultValue,
-}) {
+}: Props) {
   const deleteAccount = useAction(deleteBankAccountAction, {
     onSuccess: () => onOpenChange(false),
   });
@@ -66,7 +73,7 @@ export function EditBankAccountModal({
         <div className="p-4">
           <DialogHeader>
             <DialogTitle className="flex justify-between">
-              <span>Edit Bank Account</span>
+              <span>Edit Account</span>
               <DropdownMenu>
                 <DropdownMenuTrigger className="mr-8 -mt-[5px]">
                   <MoreHorizontal size={20} />
